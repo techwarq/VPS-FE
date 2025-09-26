@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Loader2, Users, Shirt, Upload, X } from 'lucide-react';
 import { useVPSStore } from '../../store/vpsstore';
-import { apiService, type StreamingTryOnResult, type ModelImage, createImageUrl } from '../../services/api';
+import { apiService, type StreamingTryOnResult, type ModelImage } from '../../services/api';
 import { ASPECT_RATIOS } from '../../types/index';
 
 interface TryOnParametersProps {
-  generatedAvatars: any[];
+  generatedAvatars: Array<{ url: string; angle?: string }>;
   uploadedAssets: Array<{ id: string; url: string; name: string }>;
   uploadedGarments: string[];
   removeUploadedGarment: (url: string) => void;
@@ -64,7 +64,7 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
     try {
       // Convert form data to API format
       const tryOnItems = await Promise.all(
-        tryonForm.items.map(async (item: any) => {
+        tryonForm.items.map(async (item: { image: string; garment: string; prompt?: string; background_prompt?: string; reference_images?: string[]; style?: string }) => {
           // Convert avatar URL to base64
           const avatarBase64 = await urlToBase64(item.image);
           
@@ -214,14 +214,14 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
         {generatedAvatars.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto">
             {generatedAvatars.map((avatar, index) => {
-              const isSelected = tryonForm.items?.some((item: any) => item.image === avatar.url);
+              const isSelected = tryonForm.items?.some((item: { image: string; garment: string; prompt?: string; background_prompt?: string; reference_images?: string[]; style?: string }) => item.image === avatar.url);
               
               return (
                 <div 
                   key={index} 
                   onClick={() => {
                     const currentItems = tryonForm.items || [];
-                    let updatedItems = [...currentItems];
+                    const updatedItems = [...currentItems];
                     const existingIndex = updatedItems.findIndex(item => item.image === avatar.url);
                     
                     if (existingIndex >= 0) {
@@ -270,7 +270,7 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
         </label>
         {tryonForm.items && tryonForm.items.length > 0 ? (
           <div className="space-y-3 max-h-60 overflow-y-auto">
-            {tryonForm.items.map((item: any, index: number) => (
+            {tryonForm.items.map((item: { image: string; garment: string; prompt?: string; background_prompt?: string; reference_images?: string[]; style?: string }, index: number) => (
               <div key={index} className="p-3 bg-gray-700 rounded-lg">
                 <div className="flex items-start gap-3 mb-3">
                   <img

@@ -64,7 +64,7 @@ const defaultPoseForm: Partial<PoseRequest> = {
   aspect_ratio: '16:9',
 };
 
-export const useVPSStore = create<VPSStore>((set, get) => ({
+export const useVPSStore = create<VPSStore>((set) => ({
   // Initial state
   activeTab: 'avatar',
   avatarForm: defaultAvatarForm,

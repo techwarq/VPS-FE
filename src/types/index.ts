@@ -45,6 +45,8 @@ export interface TryOnItem {
   garment: string;
   prompt?: string;
   background_prompt?: string;
+  reference_images?: string[];
+  style?: string;
 }
 
 export interface PoseRequest {
