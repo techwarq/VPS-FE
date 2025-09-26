@@ -1,8 +1,12 @@
 'use client';
 
 import React from 'react';
-import { ImageGenerationWorkflow } from '@/components/image-generation/ImageGenerationWorkflow';
+import { VPSMain } from '@/components/VPSmain/Vps';
 
 export default function GeneratePage() {
-  return <ImageGenerationWorkflow />;
+  return (
+    <div className="h-screen bg-black">
+      <VPSMain />
+    </div>
+  );
 }
