@@ -5,7 +5,7 @@ import { apiService, type StreamingPoseTransferResult, type ModelImage } from '.
 import { ASPECT_RATIOS } from '../../types/index';
 
 interface PoseParametersProps {
-  tryonResults: any[];
+  tryonResults: Array<{ image_url: string; item_index?: number }>;
   uploadedAssets: Array<{ id: string; url: string; name: string }>;
   uploadedPoseReferences: string[];
   removeUploadedPoseReference: (url: string) => void;
@@ -64,7 +64,7 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
     try {
       // Convert form data to API format
       const poseItems = await Promise.all(
-        poseForm.items.map(async (item: any) => {
+        poseForm.items.map(async (item: { image: string; poseref: string; pose_prompt?: string; background_prompt?: string }) => {
           // Convert main image to base64
           const imageBase64 = await urlToBase64(item.image);
           
@@ -212,14 +212,14 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
         {tryonResults.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto">
             {tryonResults.map((result, index) => {
-              const isSelected = poseForm.items?.some((item: any) => item.image === result.image_url);
+              const isSelected = poseForm.items?.some((item: { image: string; poseref: string; pose_prompt?: string; background_prompt?: string }) => item.image === result.image_url);
               
               return (
                 <div 
                   key={index} 
                   onClick={() => {
                     const currentItems = poseForm.items || [];
-                    let updatedItems = [...currentItems];
+                    const updatedItems = [...currentItems];
                     const existingIndex = updatedItems.findIndex(item => item.image === result.image_url);
                     
                     if (existingIndex >= 0) {
@@ -269,7 +269,7 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
         </label>
         {poseForm.items && poseForm.items.length > 0 ? (
           <div className="space-y-3 max-h-60 overflow-y-auto">
-            {poseForm.items.map((item: any, index: number) => (
+            {poseForm.items.map((item: { image: string; poseref: string; pose_prompt?: string; background_prompt?: string }, index: number) => (
               <div key={index} className="p-3 bg-gray-700 rounded-lg">
                 <div className="flex items-start gap-3 mb-3">
                   <img

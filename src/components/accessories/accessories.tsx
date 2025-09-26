@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Loader2, Plus, Trash2, Sparkles } from 'lucide-react';
+import { Upload, X, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface Accessory {
@@ -11,15 +11,13 @@ interface Accessory {
 interface AccessoriesParametersProps {
   generatedAvatars: Array<{ url: string; angle?: string }>;
   uploadedAssets: Array<{ id: string; url: string; name: string }>;
-  onAccessoriesGenerated?: (results: any[]) => void;
-  onProgress?: (result: any) => void;
+  onAccessoriesGenerated?: (results: Array<{ url: string; id?: string }>) => void;
+  onProgress?: (result: { url: string; id?: string }) => void;
 }
 
 export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
   generatedAvatars,
-  uploadedAssets,
-  onAccessoriesGenerated,
-  onProgress
+  onAccessoriesGenerated
 }) => {
   const [selectedAvatar, setSelectedAvatar] = useState<string>('');
   const [accessories, setAccessories] = useState<Accessory[]>([]);
@@ -272,7 +270,7 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
           <li>• Select an avatar from your generated avatars</li>
           <li>• Upload accessory images (sunglasses, jewelry, etc.)</li>
           <li>• Choose your preferred aspect ratio</li>
-          <li>• Click "Add Accessories" to generate the result</li>
+          <li>• Click &quot;Add Accessories&quot; to generate the result</li>
         </ul>
       </div>
     </div>

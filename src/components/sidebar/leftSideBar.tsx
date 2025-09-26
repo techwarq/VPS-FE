@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { LeftSidebar } from './left';
 
 export const LeftSideBar: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'avatar' | 'tryon' | 'pose'>('avatar');
-    const [rightDrawerOpen, setRightDrawerOpen] = useState(true);
+    const [activeTab, setActiveTab] = useState<'avatar' | 'tryon' | 'pose' | 'accessories'>('avatar');
     const [activeToolTab, setActiveToolTab] = useState<string | null>(null);
     
     const handleFileUpload = (files: FileList) => {
@@ -28,7 +27,7 @@ export const LeftSideBar: React.FC = () => {
         <LeftSidebar 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            setRightDrawerOpen={setRightDrawerOpen}
+            setRightDrawerOpen={() => {}}
             activeToolTab={activeToolTab}
             setActiveToolTab={setActiveToolTab}
             handleFileUpload={handleFileUpload}

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Upload, X, Loader2, Download } from 'lucide-react';
 
 // Assets Management Component
@@ -15,7 +15,6 @@ interface AssetsContentProps {
 
 export const AssetsContent: React.FC<AssetsContentProps> = ({
   uploadedAssets,
-  setUploadedAssets,
   isUploading,
   removeAsset,
   handleFileUpload,
@@ -104,9 +103,9 @@ export const AssetsContent: React.FC<AssetsContentProps> = ({
 
 // Export Component
 interface ExportContentProps {
-  generatedAvatars: any[];
-  tryonResults: any[];
-  poseResults: any[];
+  generatedAvatars: Array<{ id: string; url: string; angle?: string }>;
+  tryonResults: Array<{ id: string; url: string; item_index?: number }>;
+  poseResults: Array<{ id: string; url: string; item_index?: number }>;
 }
 
 export const ExportContent: React.FC<ExportContentProps> = ({
@@ -118,8 +117,8 @@ export const ExportContent: React.FC<ExportContentProps> = ({
     try {
       const allImages = [
         ...generatedAvatars.map(avatar => avatar.url),
-        ...tryonResults.map(result => result.image_url),
-        ...poseResults.map(result => result.image_url)
+        ...tryonResults.map(result => result.url),
+        ...poseResults.map(result => result.url)
       ].filter(Boolean);
 
       if (allImages.length === 0) {

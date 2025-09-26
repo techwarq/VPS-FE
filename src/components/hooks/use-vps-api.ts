@@ -5,7 +5,7 @@ export const useVPSAPI = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateAvatar = async (formData: any, onProgress?: (data: any) => void) => {
+  const generateAvatar = async (formData: Record<string, unknown>, onProgress?: (data: Record<string, unknown>) => void) => {
     setIsLoading(true);
     setError(null);
     
@@ -30,7 +30,7 @@ export const useVPSAPI = () => {
     }
   };
 
-  const tryOn = async (formData: any, onProgress?: (data: any) => void) => {
+  const tryOn = async (formData: Record<string, unknown>, onProgress?: (data: Record<string, unknown>) => void) => {
     setIsLoading(true);
     setError(null);
     
@@ -54,7 +54,7 @@ export const useVPSAPI = () => {
     }
   };
 
-  const transferPose = async (formData: any, onProgress?: (data: any) => void) => {
+  const transferPose = async (formData: Record<string, unknown>, onProgress?: (data: Record<string, unknown>) => void) => {
     setIsLoading(true);
     setError(null);
     

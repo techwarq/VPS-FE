@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { 
   User, 
   Shirt, 
@@ -153,7 +153,7 @@ export const VPSMain: React.FC = () => {
     setPoseResults(convertedResults);
   };
 
-  const handleAccessoriesGenerated = (results: any[]) => {
+  const handleAccessoriesGenerated = (results: Array<{ url: string; id?: string }>) => {
     console.log('Accessories results generated:', results);
     // For now, we'll handle accessories results similar to other results
     // You can extend this based on your specific needs
@@ -411,7 +411,7 @@ export const VPSMain: React.FC = () => {
     }
   };
 
-    function setCurrentSlide(slide: number): void {
+    function setCurrentSlide(): void {
         throw new Error('Function not implemented.');
     }
 

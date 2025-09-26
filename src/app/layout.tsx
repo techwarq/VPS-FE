@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const bangers = Bangers({
+const bangers = Bangers({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-bangers",
 });
 
-export const inter = Inter({
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });

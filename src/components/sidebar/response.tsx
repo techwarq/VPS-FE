@@ -3,9 +3,9 @@ import { User, Shirt, Users, Maximize2, Download, Loader2 } from 'lucide-react';
 
 interface ResultDisplayProps {
   activeTab: 'avatar' | 'tryon' | 'pose' | 'accessories';
-  generatedAvatars: any[];
-  tryonResults: any[];
-  poseResults: any[];
+  generatedAvatars: Array<{ id: string; url: string; angle?: string; isLoading?: boolean }>;
+  tryonResults: Array<{ id: string; url: string; item_index?: number }>;
+  poseResults: Array<{ id: string; url: string; item_index?: number }>;
   openCarousel: (images: string[]) => void;
   handleDownload: (imageUrl: string, index: number) => void;
 }
@@ -45,10 +45,10 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
   };
 
   const renderImageGrid = (
-    items: any[], 
+    items: Array<{ id: string; url: string; angle?: string; isLoading?: boolean; item_index?: number }>, 
     urlKey: string, 
     labelPrefix: string,
-    emptyIcon: React.ComponentType<any>,
+    emptyIcon: React.ComponentType<{ className?: string }>,
     emptyTitle: string,
     emptyDescription: string,
     showPlaceholders: boolean = false
@@ -84,8 +84,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
           <button
             onClick={() => {
               const urls = displayItems
-                .filter(item => !item.isLoading && item[urlKey])
-                .map(item => item[urlKey]);
+                .filter(item => !item.isLoading && (item as Record<string, unknown>)[urlKey])
+                .map(item => (item as Record<string, unknown>)[urlKey] as string);
               if (urls.length > 0) {
                 openCarousel(urls);
               }
@@ -108,14 +108,14 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
                   <Loader2 className="w-8 h-8 text-purple-400 animate-spin mb-2" />
                   <div className="text-gray-400 text-sm">Generating...</div>
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/70 text-white text-xs rounded-b-lg text-center">
-                    {item.angle || `Image ${index + 1}`}
+                    {(item as Record<string, unknown>).angle as string || `Image ${index + 1}`}
                   </div>
                 </div>
               );
             }
             
             // Actual result
-            const imageUrl = item[urlKey];
+            const imageUrl = (item as Record<string, unknown>)[urlKey] as string;
             if (!imageUrl) return null;
             
             return (
@@ -133,9 +133,9 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
                     <Download className="w-5 h-5" />
                   </button>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 text-white text-sm rounded-b-lg text-center">
-                  {item.angle || `${labelPrefix} ${index + 1}`}
-                </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 text-white text-sm rounded-b-lg text-center">
+                    {(item as Record<string, unknown>).angle as string || `${labelPrefix} ${index + 1}`}
+                  </div>
                 {/* Success indicator */}
                 <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                   <div className="w-2 h-2 bg-white rounded-full"></div>

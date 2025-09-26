@@ -43,7 +43,7 @@ interface RightSidebarProps {
   onAvatarGenerated?: (avatars: StreamingAvatarResult[]) => void;
   onTryOnGenerated?: (results: StreamingTryOnResult[]) => void;
   onPoseGenerated?: (results: StreamingPoseTransferResult[]) => void;
-  onAccessoriesGenerated?: (results: any[]) => void;
+  onAccessoriesGenerated?: (results: Array<{ url: string; id?: string }>) => void;
   
   // Progress handlers - optional callbacks for real-time updates
   onAvatarProgress?: (result: StreamingAvatarResult) => void;
@@ -77,7 +77,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   activeToolTab,
   setActiveToolTab,
   uploadedAssets,
-  setUploadedAssets,
   isUploading,
   removeAsset,
   generatedAvatars,

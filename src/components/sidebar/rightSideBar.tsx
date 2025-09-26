@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { RightSidebar } from './right';
+import { type AvatarImage, type TryOnResult, type PoseResult } from '../../types';
 
 export const RightSideBar: React.FC = () => {
     const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'avatar' | 'tryon' | 'pose'>('avatar');
+    const [activeTab] = useState<'avatar' | 'tryon' | 'pose'>('avatar');
     const [activeToolTab, setActiveToolTab] = useState<string | null>(null);
-    const [uploadedAssets, setUploadedAssets] = useState<any[]>([]);
+    const [uploadedAssets, setUploadedAssets] = useState<Array<{ id: string; url: string; name: string }>>([]);
     const [isUploading, setIsUploading] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [generatedAvatars, setGeneratedAvatars] = useState<any[]>([]);
-    const [tryonResults, setTryonResults] = useState<any[]>([]);
-    const [poseResults, setPoseResults] = useState<any[]>([]);
+    const [generatedAvatars] = useState<AvatarImage[]>([]);
+    const [tryonResults] = useState<TryOnResult[]>([]);
+    const [poseResults] = useState<PoseResult[]>([]);
     const [uploadedGarments, setUploadedGarments] = useState<string[]>([]);
     const [uploadedPoseReferences, setUploadedPoseReferences] = useState<string[]>([]);
     const [dragActive, setDragActive] = useState(false);
@@ -71,35 +70,6 @@ export const RightSideBar: React.FC = () => {
         }
     };
 
-    const handleGenerate = () => {
-        setIsLoading(true);
-        setError(null);
-        // Simulate generation
-        setTimeout(() => {
-            setGeneratedAvatars(prev => [...prev, { id: Date.now(), url: 'placeholder' }]);
-            setIsLoading(false);
-        }, 2000);
-    };
-
-    const handleTryOnGenerate = () => {
-        setIsLoading(true);
-        setError(null);
-        // Simulate generation
-        setTimeout(() => {
-            setTryonResults(prev => [...prev, { id: Date.now(), url: 'placeholder' }]);
-            setIsLoading(false);
-        }, 2000);
-    };
-
-    const handlePoseGenerate = () => {
-        setIsLoading(true);
-        setError(null);
-        // Simulate generation
-        setTimeout(() => {
-            setPoseResults(prev => [...prev, { id: Date.now(), url: 'placeholder' }]);
-            setIsLoading(false);
-        }, 2000);
-    };
 
     return (
         <RightSidebar

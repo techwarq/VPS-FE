@@ -3,9 +3,9 @@ import { Download, Maximize2, Loader2 } from 'lucide-react';
 
 interface ResultDisplayProps {
   activeTab: 'avatar' | 'tryon' | 'pose';
-  generatedAvatars: any[];
-  tryonResults: any[];
-  poseResults: any[];
+  generatedAvatars: Array<{ id: string; url: string; angle?: string; isLoading?: boolean }>;
+  tryonResults: Array<{ id: string; url: string; item_index?: number }>;
+  poseResults: Array<{ id: string; url: string; item_index?: number }>;
   openCarousel: (images: string[]) => void;
   handleDownload: (imageUrl: string, index: number) => void;
 }
@@ -66,8 +66,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
     <div className="flex-1 p-6">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {results.map((result, index) => {
-          const imageUrl = result.url || result.image_url;
-          const isLoading = result.isLoading;
+          const imageUrl = result.url;
+          const isLoading = 'isLoading' in result ? result.isLoading : false;
           
           return (
             <div key={result.id || index} className="relative group">
@@ -112,7 +112,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
               {/* Result info */}
               <div className="mt-2 text-center">
                 <p className="text-sm text-gray-300">
-                  {result.angle || `Result ${index + 1}`}
+                  {'angle' in result ? result.angle : `Result ${index + 1}`}
                 </p>
                 {isLoading && (
                   <p className="text-xs text-gray-400">Generating...</p>
