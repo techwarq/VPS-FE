@@ -27,26 +27,9 @@ interface UploadedAsset {
   id: string;
   url: string;
   name: string;
-}
-
-// Define types for API response structure
-interface UploadResponse {
-  status: string;
-  value?: {
-    url: string;
-    name?: string;
-  };
-}
-
-interface APIResponse {
-  success?: boolean;  // Make optional since some responses don't have it
-  data?: {
-    url: string;
-    name?: string;
-  };
-  uploaded?: Array<{ url: string }>;
-  urls?: string[];
-  url?: string;
+  fileId?: string;
+  size?: number;
+  contentType?: string;
 }
 
 export const VPSMain: React.FC = () => {
@@ -142,8 +125,9 @@ export const VPSMain: React.FC = () => {
   };
 
   const handleTryOnGenerated = (results: StreamingTryOnResult[]) => {
-    console.log('Try-on results generated:', results);
+    console.log('Try-on results generated (raw):', results);
     const convertedResults = convertTryOnResults(results);
+    console.log('Try-on results converted:', convertedResults);
     setTryonResults(convertedResults);
   };
 
@@ -248,24 +232,20 @@ export const VPSMain: React.FC = () => {
       const uploadPromises = fileArray.map(async (file) => {
         const response = await uploadFile(file);
         
-        if (Array.isArray(response) && response.length > 0) {
-          const fileData = response[0] as UploadResponse;
-          if (fileData.status === 'fulfilled' && fileData.value) {
-            return {
-              id: `asset-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-              url: fileData.value.url,
-              name: fileData.value.name || file.name
-            };
-          }
-        }
-        
-        const apiResponse = response as APIResponse;
-        if (apiResponse && apiResponse.data && apiResponse.data.url) {
-          return {
+        // Handle the response from our upload API
+        if (response && response.data && response.data.url) {
+          const asset: UploadedAsset = {
             id: `asset-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            url: apiResponse.data.url,
-            name: file.name
+            url: response.data.url,
+            name: response.data.name || file.name
           };
+          
+          // Add optional properties if they exist
+          if (response.data.fileId) asset.fileId = response.data.fileId;
+          if (response.data.size) asset.size = response.data.size;
+          if (response.data.contentType) asset.contentType = response.data.contentType;
+          
+          return asset;
         }
         
         return null;
@@ -289,22 +269,13 @@ export const VPSMain: React.FC = () => {
       const fileArray = Array.from(files);
       const response = await uploadGarments(fileArray);
       
-      if (response.success) {
-        const responseData = response as APIResponse;
-        
-        if (responseData.uploaded && Array.isArray(responseData.uploaded)) {
-          responseData.uploaded.forEach((item: { url: string }) => {
-            if (item.url) {
-              addUploadedGarment(item.url);
-            }
-          });
-        } else if (responseData.urls && Array.isArray(responseData.urls)) {
-          responseData.urls.forEach((url: string) => {
-            addUploadedGarment(url);
-          });
-        } else if (responseData.url) {
-          addUploadedGarment(responseData.url);
-        }
+      if (response.success && response.uploaded) {
+        // Store the signed URL returned from the API, not a blob URL
+        response.uploaded.forEach(item => {
+          if (item.url) {
+            addUploadedGarment(item.url);
+          }
+        });
       }
     } catch (err) {
       console.error('Garment upload failed:', err);
@@ -321,6 +292,7 @@ export const VPSMain: React.FC = () => {
       const response = await uploadPoseReference(file);
       
       if (response.success && response.url) {
+        // Store the signed URL returned from the API, not a blob URL
         addUploadedPoseReference(response.url);
       }
     } catch (err) {

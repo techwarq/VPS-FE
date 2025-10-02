@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2, Users, Shirt, Upload, X } from 'lucide-react';
 import { useVPSStore } from '../../store/vpsstore';
-import { apiService, type StreamingPoseTransferResult, type ModelImage } from '../../services/api';
+import { apiService, type StreamingPoseTransferResult } from '../../services/api';
 import { ASPECT_RATIOS } from '../../types/index';
 
 interface PoseParametersProps {
@@ -13,23 +13,6 @@ interface PoseParametersProps {
   onPoseGenerated?: (results: StreamingPoseTransferResult[]) => void;
   onProgress?: (result: StreamingPoseTransferResult) => void;
 }
-
-// Helper function to convert URL to base64
-const urlToBase64 = async (url: string): Promise<ModelImage> => {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = (reader.result as string).split(',')[1];
-      resolve({
-        mimeType: blob.type || 'image/jpeg',
-        data: base64
-      });
-    };
-    reader.readAsDataURL(blob);
-  });
-};
 
 export const PoseParameters: React.FC<PoseParametersProps> = ({
   tryonResults,
@@ -62,26 +45,15 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
     setGenerationProgress([]);
 
     try {
-      // Convert form data to API format
-      const poseItems = await Promise.all(
-        poseForm.items.map(async (item: { image: string; poseref: string; pose_prompt?: string; background_prompt?: string }) => {
-          // Convert main image to base64
-          const imageBase64 = await urlToBase64(item.image);
-          
-          // Convert pose reference if available
-          let poseReferenceBase64: ModelImage | undefined;
-          if (item.poseref && uploadedPoseReferences.includes(item.poseref)) {
-            poseReferenceBase64 = await urlToBase64(item.poseref);
-          }
-
-          return {
-            image: imageBase64,
-            pose_reference: poseReferenceBase64,
-            background_prompt: item.background_prompt || undefined,
-            pose_prompt: item.pose_prompt || undefined
-          };
-        })
-      );
+      // Convert form data to API format - use URLs directly instead of base64
+      const poseItems = poseForm.items.map((item: { image: string; poseref: string; pose_prompt?: string; background_prompt?: string }) => {
+        return {
+          image: item.image, // Use the signed URL directly
+          pose_reference: item.poseref || undefined, // Use the signed URL directly
+          background_prompt: item.background_prompt || undefined,
+          pose_prompt: item.pose_prompt || undefined
+        };
+      });
 
       const request = {
         items: poseItems,

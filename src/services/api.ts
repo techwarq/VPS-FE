@@ -22,8 +22,13 @@ export interface ModelGenerationRequest {
 }
 
 export interface ModelImage {
-  mimeType: string;
-  data: string; // base64
+  mimeType?: string;
+  data?: string; // base64
+  fileId?: string;
+  filename?: string;
+  size?: number;
+  contentType?: string;
+  signedUrl?: string;
 }
 
 // Backend streaming response types
@@ -208,9 +213,9 @@ export interface AvatarGenerationRequest {
 }
 
 export interface TryOnItem {
-  avatar_image: ModelImage;
-  garment_images: ModelImage[];
-  reference_model_images?: ModelImage[];
+  avatar_image: ModelImage | string; // Support both ModelImage and URL string
+  garment_images: (ModelImage | string)[]; // Support both ModelImage and URL string
+  reference_model_images?: (ModelImage | string)[];
 }
 
 export interface TryOnRequest {
@@ -221,8 +226,8 @@ export interface TryOnRequest {
 }
 
 export interface PoseTransferItem {
-  image: ModelImage;
-  pose_reference?: ModelImage;
+  image: ModelImage | string; // Support both ModelImage and URL string
+  pose_reference?: ModelImage | string; // Support both ModelImage and URL string
   background_prompt?: string;
   pose_prompt?: string;
 }
@@ -340,11 +345,18 @@ class ApiService {
     onProgress?: (result: StreamingModelResult) => void
   ): Promise<ApiResponse<ModelGenerationResponse>> {
     try {
+      // Add GridFS storage parameters
+      const requestWithGridFS = {
+        ...request,
+        storeInGridFS: true,
+        userId: 'user123'
+      };
+      
       const results = await this.streamRequest<StreamingModelResult>(
         '/photoshoot/models',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestWithGridFS),
         },
         onProgress
       );
@@ -369,11 +381,18 @@ class ApiService {
     onProgress?: (result: StreamingPoseResult) => void
   ): Promise<ApiResponse<PoseGenerationResponse>> {
     try {
+      // Add GridFS storage parameters
+      const requestWithGridFS = {
+        ...request,
+        storeInGridFS: true,
+        userId: 'user123'
+      };
+      
       const results = await this.streamRequest<StreamingPoseResult>(
         '/photoshoot/pose',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestWithGridFS),
         },
         onProgress
       );
@@ -398,11 +417,18 @@ class ApiService {
     onProgress?: (result: StreamingBackgroundResult) => void
   ): Promise<ApiResponse<BackgroundGenerationResponse>> {
     try {
+      // Add GridFS storage parameters
+      const requestWithGridFS = {
+        ...request,
+        storeInGridFS: true,
+        userId: 'user123'
+      };
+      
       const results = await this.streamRequest<StreamingBackgroundResult>(
         '/photoshoot/background',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestWithGridFS),
         },
         onProgress
       );
@@ -427,11 +453,18 @@ class ApiService {
     onProgress?: (result: StreamingPhotoshootResult) => void
   ): Promise<ApiResponse<PhotoshootResponse>> {
     try {
+      // Add GridFS storage parameters
+      const requestWithGridFS = {
+        ...request,
+        storeInGridFS: true,
+        userId: 'user123'
+      };
+      
       const results = await this.streamRequest<StreamingPhotoshootResult>(
         '/photoshoot/shoot',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestWithGridFS),
         },
         onProgress
       );
@@ -461,11 +494,18 @@ class ApiService {
     onProgress?: (result: StreamingPhotoshootResult) => void
   ): Promise<ApiResponse<PhotoshootResponse>> {
     try {
+      // Add GridFS storage parameters
+      const requestWithGridFS = {
+        ...request,
+        storeInGridFS: true,
+        userId: 'user123'
+      };
+      
       const results = await this.streamRequest<StreamingPhotoshootResult>(
         '/photoshoot/final',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestWithGridFS),
         },
         onProgress
       );
@@ -496,11 +536,18 @@ class ApiService {
     onProgress?: (result: StreamingAvatarResult) => void
   ): Promise<ApiResponse<AvatarResponse>> {
     try {
+      // Add GridFS storage parameters
+      const requestWithGridFS = {
+        ...request,
+        storeInGridFS: true,
+        userId: 'user123'
+      };
+      
       const results = await this.streamRequest<StreamingAvatarResult>(
         '/photoshoot/avatar',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestWithGridFS),
         },
         onProgress
       );
@@ -530,11 +577,18 @@ class ApiService {
     onProgress?: (result: StreamingTryOnResult) => void
   ): Promise<ApiResponse<TryOnResponse>> {
     try {
+      // Add GridFS storage parameters
+      const requestWithGridFS = {
+        ...request,
+        storeInGridFS: true,
+        userId: 'user123'
+      };
+      
       const results = await this.streamRequest<StreamingTryOnResult>(
         '/photoshoot/tryon',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestWithGridFS),
         },
         onProgress
       );
@@ -564,11 +618,18 @@ class ApiService {
     onProgress?: (result: StreamingPoseTransferResult) => void
   ): Promise<ApiResponse<PoseTransferResponse>> {
     try {
+      // Add GridFS storage parameters
+      const requestWithGridFS = {
+        ...request,
+        storeInGridFS: true,
+        userId: 'user123'
+      };
+      
       const results = await this.streamRequest<StreamingPoseTransferResult>(
         '/photoshoot/pose-transfer',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestWithGridFS),
         },
         onProgress
       );
@@ -625,20 +686,45 @@ export const convertBase64ToBlob = (base64: string, mimeType: string): Blob => {
 };
 
 export const createImageUrl = (image: ModelImage): string => {
-  const blob = convertBase64ToBlob(image.data, image.mimeType);
-  return URL.createObjectURL(blob);
+  // If we have a signedUrl, use it directly
+  if (image.signedUrl) {
+    return image.signedUrl;
+  }
+  
+  // Fallback to base64 conversion for backward compatibility
+  if (image.data && image.mimeType) {
+    const blob = convertBase64ToBlob(image.data, image.mimeType);
+    return URL.createObjectURL(blob);
+  }
+  
+  // If neither format is available, return empty string
+  return '';
 };
 
 export const downloadImage = (image: ModelImage, filename: string = 'generated-image.png'): void => {
-  const blob = convertBase64ToBlob(image.data, image.mimeType);
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  // If we have a signedUrl, download directly from it
+  if (image.signedUrl) {
+    const link = document.createElement('a');
+    link.href = image.signedUrl;
+    link.download = image.filename || filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return;
+  }
+  
+  // Fallback to base64 conversion for backward compatibility
+  if (image.data && image.mimeType) {
+    const blob = convertBase64ToBlob(image.data, image.mimeType);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 };
 
 // Helper function to aggregate all images from streaming results

@@ -1,5 +1,8 @@
 import { useState } from 'react';
 
+// API base URL configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 // Mock API functions - replace with actual API calls
 export const useVPSAPI = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +33,7 @@ export const useVPSAPI = () => {
     }
   };
 
-  const tryOn = async (formData: Record<string, unknown>, onProgress?: (data: Record<string, unknown>) => void) => {
+  const tryOn = async (formData: Record<string, unknown>, avatarUrls: string[], onProgress?: (data: Record<string, unknown>) => void) => {
     setIsLoading(true);
     setError(null);
     
@@ -54,7 +57,7 @@ export const useVPSAPI = () => {
     }
   };
 
-  const transferPose = async (formData: Record<string, unknown>, onProgress?: (data: Record<string, unknown>) => void) => {
+  const transferPose = async (formData: Record<string, unknown>, avatarUrls: string[], onProgress?: (data: Record<string, unknown>) => void) => {
     setIsLoading(true);
     setError(null);
     
@@ -83,15 +86,35 @@ export const useVPSAPI = () => {
     setError(null);
     
     try {
-      // Mock upload - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Upload files using the new upload API endpoint
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch(`${API_BASE_URL}/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        return {
+          url: result.url || result.signedUrl || URL.createObjectURL(file),
+          name: file.name,
+          fileId: result.fileId,
+          size: result.size,
+          contentType: result.contentType
+        };
+      });
+      
+      const uploadedFiles = await Promise.all(uploadPromises);
       
       return {
         success: true,
-        uploaded: files.map(file => ({
-          url: URL.createObjectURL(file),
-          name: file.name
-        }))
+        uploaded: uploadedFiles
       };
     } catch (err) {
       setError('Failed to upload garments');
@@ -106,15 +129,66 @@ export const useVPSAPI = () => {
     setError(null);
     
     try {
-      // Mock upload - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Upload file using the new upload API endpoint
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch(`${API_BASE_URL}/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
       
       return {
         success: true,
-        url: URL.createObjectURL(file)
+        url: result.url || result.signedUrl || URL.createObjectURL(file),
+        fileId: result.fileId,
+        size: result.size,
+        contentType: result.contentType
       };
     } catch (err) {
       setError('Failed to upload pose reference');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // General file upload function
+  const uploadFile = async (file: File) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch(`${API_BASE_URL}/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      return {
+        success: true,
+        url: result.url || result.signedUrl || URL.createObjectURL(file),
+        fileId: result.fileId,
+        size: result.size,
+        contentType: result.contentType,
+        filename: result.filename || file.name
+      };
+    } catch (err) {
+      setError('Failed to upload file');
       throw err;
     } finally {
       setIsLoading(false);
@@ -127,6 +201,7 @@ export const useVPSAPI = () => {
     transferPose,
     uploadGarments,
     uploadPoseReference,
+    uploadFile,
     isLoading,
     error
   };

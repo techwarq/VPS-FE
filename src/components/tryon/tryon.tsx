@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2, Users, Shirt, Upload, X } from 'lucide-react';
 import { useVPSStore } from '../../store/vpsstore';
-import { apiService, type StreamingTryOnResult, type ModelImage } from '../../services/api';
+import { apiService, type StreamingTryOnResult } from '../../services/api';
 import { ASPECT_RATIOS } from '../../types/index';
 
 interface TryOnParametersProps {
@@ -13,23 +13,6 @@ interface TryOnParametersProps {
   onTryOnGenerated?: (results: StreamingTryOnResult[]) => void;
   onProgress?: (result: StreamingTryOnResult) => void;
 }
-
-// Helper function to convert URL to base64
-const urlToBase64 = async (url: string): Promise<ModelImage> => {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = (reader.result as string).split(',')[1];
-      resolve({
-        mimeType: blob.type || 'image/jpeg',
-        data: base64
-      });
-    };
-    reader.readAsDataURL(blob);
-  });
-};
 
 export const TryOnParameters: React.FC<TryOnParametersProps> = ({
   generatedAvatars,
@@ -62,27 +45,15 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
     setGenerationProgress([]);
 
     try {
-      // Convert form data to API format
-      const tryOnItems = await Promise.all(
-        tryonForm.items.map(async (item: { image: string; garment: string; prompt?: string; background_prompt?: string; reference_images?: string[]; style?: string }) => {
-          // Convert avatar URL to base64
-          const avatarBase64 = await urlToBase64(item.image);
-          
-          // Convert garment URLs to base64
-          const garmentImages = await Promise.all(
-            uploadedGarments.map(garmentUrl => urlToBase64(garmentUrl))
-          );
-
-          return {
-            avatar_image: avatarBase64,
-            garment_images: garmentImages,
-            // Add reference model images if available
-            reference_model_images: item.reference_images ? 
-              await Promise.all(item.reference_images.map((url: string) => urlToBase64(url))) : 
-              undefined
-          };
-        })
-      );
+      // Convert form data to API format - use URLs directly instead of base64
+      const tryOnItems = tryonForm.items.map((item: { image: string; garment: string; prompt?: string; background_prompt?: string; reference_images?: string[]; style?: string }) => {
+        return {
+          avatar_image: item.image, // Use the signed URL directly
+          garment_images: uploadedGarments, // Use the signed URLs directly
+          // Add reference model images if available
+          reference_model_images: item.reference_images || undefined
+        };
+      });
 
       const request = {
         items: tryOnItems,
@@ -99,11 +70,14 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
         }
       );
 
+      console.log('API Response for Try-On:', response);
+      
       if (response.success && response.data) {
         const { results } = response.data;
         onTryOnGenerated?.(results);
         console.log(`Try-on completed: ${response.data.metadata.completedItems}/${response.data.metadata.totalItems} items`);
       } else {
+        console.error('API failed for Try-On:', response.error);
         setError(response.error || 'Failed to generate try-on images');
       }
     } catch (err) {
