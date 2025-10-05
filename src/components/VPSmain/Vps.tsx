@@ -13,7 +13,7 @@ import { useVPSAPI } from '../hooks/use-vps-api';
 import { LeftSidebar } from '../sidebar/left';
 import { RightSidebar } from '../sidebar/right';
 import { ResultDisplay } from '../sidebar/response';
-import { ImageCarousel } from './imagecaroussel';
+// import { ImageCarousel } from './imagecaroussel';
 import { 
   type StreamingAvatarResult, 
   type StreamingTryOnResult, 
@@ -270,12 +270,14 @@ export const VPSMain: React.FC = () => {
       const response = await uploadGarments(fileArray);
       
       if (response.success && response.uploaded) {
-        // Store the signed URL returned from the API, not a blob URL
+        // Store the signed URL returned from the API for each uploaded garment
         response.uploaded.forEach(item => {
           if (item.url) {
             addUploadedGarment(item.url);
           }
         });
+      } else {
+        console.error('Garment upload failed: Invalid response format or no uploaded items', response);
       }
     } catch (err) {
       console.error('Garment upload failed:', err);
@@ -503,7 +505,7 @@ export const VPSMain: React.FC = () => {
       )}
       
       {/* Image Carousel */}
-      {carouselOpen && (
+      {/* {carouselOpen && (
         <ImageCarousel
           images={carouselImages}
           currentSlide={currentCarouselSlide}
@@ -514,7 +516,7 @@ export const VPSMain: React.FC = () => {
           setPosition={setCarouselPosition}
           onClose={closeCarousel}
         />
-      )}
+      )} */}
     </div>
   );
 };
