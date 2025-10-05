@@ -101,8 +101,13 @@ export const useVPSAPI = () => {
         }
         
         const result = await response.json();
+        
+        if (!result.url && !result.signedUrl) {
+          throw new Error('File upload failed: No valid URL returned.');
+        }
+
         return {
-          url: result.url || result.signedUrl || URL.createObjectURL(file),
+          url: result.url || result.signedUrl,
           name: file.name,
           fileId: result.fileId,
           size: result.size,
@@ -143,10 +148,14 @@ export const useVPSAPI = () => {
       }
       
       const result = await response.json();
+
+      if (!result.url && !result.signedUrl) {
+        throw new Error('Pose reference upload failed: No valid URL returned.');
+      }
       
       return {
         success: true,
-        url: result.url || result.signedUrl || URL.createObjectURL(file),
+        url: result.url || result.signedUrl,
         fileId: result.fileId,
         size: result.size,
         contentType: result.contentType
@@ -178,10 +187,14 @@ export const useVPSAPI = () => {
       }
       
       const result = await response.json();
+
+      if (!result.url && !result.signedUrl) {
+        throw new Error('File upload failed: No valid URL returned.');
+      }
       
       return {
         success: true,
-        url: result.url || result.signedUrl || URL.createObjectURL(file),
+        url: result.url || result.signedUrl,
         fileId: result.fileId,
         size: result.size,
         contentType: result.contentType,
