@@ -22,20 +22,30 @@ export const uploadFile = async (file: File) => {
     }
     
     const result = await response.json();
-    console.log('✅ Upload result:', result);
     
+    // Access the URL from the nested 'file' object if it exists, otherwise assume top-level
+    const fileUrl = result.file?.url || result.file?.signedUrl || result.url || result.signedUrl;
+    const fileName = result.file?.filename || result.file?.name || file.name;
+    const fileId = result.file?.fileId || result.fileId;
+    const fileSize = result.file?.size || result.size;
+    const fileContentType = result.file?.contentType || result.contentType;
+
+    if (!fileUrl) {
+      throw new Error('File upload failed: No valid URL returned.');
+    }
+
     return {
       data: {
-        url: result.url || result.signedUrl,
-        name: result.filename || file.name,
-        fileId: result.fileId,
-        size: result.size,
-        contentType: result.contentType
+        url: fileUrl,
+        name: fileName,
+        fileId: fileId,
+        size: fileSize,
+        contentType: fileContentType
       }
     };
   } catch (error) {
     console.error('❌ Upload error:', error);
-    throw new Error('File upload failed. Please try again.');
+    throw new Error(`File upload failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 };
 
