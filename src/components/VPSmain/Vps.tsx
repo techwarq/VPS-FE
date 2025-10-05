@@ -451,6 +451,7 @@ export const VPSMain: React.FC = () => {
         rightDrawerOpen={rightDrawerOpen}
         setRightDrawerOpen={setRightDrawerOpen}
         activeTab={activeTab}
+        setActiveTab={setActiveTab}
         activeToolTab={activeToolTab}
         setActiveToolTab={setActiveToolTab}
         uploadedAssets={uploadedAssets}
@@ -489,6 +490,7 @@ export const VPSMain: React.FC = () => {
         
         // Additional data
         uploadedGarments={uploadedGarments}
+        addUploadedGarment={addUploadedGarment}
         removeUploadedGarment={removeUploadedGarment}
         uploadedPoseReferences={uploadedPoseReferences}
         removeUploadedPoseReference={removeUploadedPoseReference}

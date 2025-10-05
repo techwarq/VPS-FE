@@ -8,6 +8,7 @@ interface TryOnParametersProps {
   generatedAvatars: Array<{ url: string; angle?: string }>;
   uploadedAssets: Array<{ id: string; url: string; name: string }>;
   uploadedGarments: string[];
+  addUploadedGarment: (url: string) => void; // Explicitly pass it as a prop
   removeUploadedGarment: (url: string) => void;
   handleGarmentUpload: (files: FileList) => void;
   onTryOnGenerated?: (results: StreamingTryOnResult[]) => void;
@@ -18,6 +19,7 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
   generatedAvatars,
   uploadedAssets,
   uploadedGarments,
+  addUploadedGarment,
   removeUploadedGarment,
   handleGarmentUpload,
   onTryOnGenerated,
@@ -28,11 +30,7 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [generationProgress, setGenerationProgress] = useState<StreamingTryOnResult[]>([]);
 
-  const addUploadedGarment = (url: string) => {
-    if (!uploadedGarments.includes(url)) {
-      console.log('Adding garment:', url);
-    }
-  };
+  // REMOVED: Local addUploadedGarment function. Now using the prop directly.
 
   const handleTryOnGenerate = async () => {
     if (!tryonForm.items?.length || !uploadedGarments.length) {

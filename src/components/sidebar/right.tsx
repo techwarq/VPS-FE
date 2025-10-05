@@ -26,6 +26,7 @@ interface RightSidebarProps {
   rightDrawerOpen: boolean;
   setRightDrawerOpen: (open: boolean) => void;
   activeTab: 'avatar' | 'tryon' | 'pose' | 'accessories';
+  setActiveTab: (tab: 'avatar' | 'tryon' | 'pose' | 'accessories') => void;
   activeToolTab: string | null;
   setActiveToolTab: (tab: string | null) => void;
   uploadedAssets: Asset[];
@@ -65,6 +66,7 @@ interface RightSidebarProps {
   
   // Additional data
   uploadedGarments: string[];
+  addUploadedGarment: (url: string) => void; // Add this prop
   removeUploadedGarment: (url: string) => void;
   uploadedPoseReferences: string[];
   removeUploadedPoseReference: (url: string) => void;
@@ -97,6 +99,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   handleDrag,
   handleDrop,
   uploadedGarments,
+  addUploadedGarment, // Destructure the new prop
   removeUploadedGarment,
   uploadedPoseReferences,
   removeUploadedPoseReference
@@ -214,6 +217,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             }
             uploadedAssets={uploadedAssets}
             uploadedGarments={uploadedGarments}
+            addUploadedGarment={addUploadedGarment} // Pass the prop down
             removeUploadedGarment={removeUploadedGarment}
             handleGarmentUpload={handleGarmentUpload}
             onTryOnGenerated={onTryOnGenerated}
