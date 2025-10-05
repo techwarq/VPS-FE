@@ -102,16 +102,23 @@ export const useVPSAPI = () => {
         
         const result = await response.json();
         
-        if (!result.url && !result.signedUrl) {
+        // Access the URL from the nested 'file' object if it exists, otherwise assume top-level
+        const fileUrl = result.file?.url || result.file?.signedUrl || result.url || result.signedUrl;
+        const fileName = result.file?.filename || result.file?.name || file.name;
+        const fileId = result.file?.fileId || result.fileId;
+        const fileSize = result.file?.size || result.size;
+        const fileContentType = result.file?.contentType || result.contentType;
+
+        if (!fileUrl) {
           throw new Error('File upload failed: No valid URL returned.');
         }
 
         return {
-          url: result.url || result.signedUrl,
-          name: file.name,
-          fileId: result.fileId,
-          size: result.size,
-          contentType: result.contentType
+          url: fileUrl,
+          name: fileName,
+          fileId: fileId,
+          size: fileSize,
+          contentType: fileContentType
         };
       });
       
@@ -122,7 +129,7 @@ export const useVPSAPI = () => {
         uploaded: uploadedFiles
       };
     } catch (err) {
-      setError('Failed to upload garments');
+      setError(`Failed to upload garments: ${err instanceof Error ? err.message : String(err)}`);
       throw err;
     } finally {
       setIsLoading(false);
@@ -149,19 +156,25 @@ export const useVPSAPI = () => {
       
       const result = await response.json();
 
-      if (!result.url && !result.signedUrl) {
+      // Access the URL from the nested 'file' object if it exists, otherwise assume top-level
+      const fileUrl = result.file?.url || result.file?.signedUrl || result.url || result.signedUrl;
+      const fileId = result.file?.fileId || result.fileId;
+      const fileSize = result.file?.size || result.size;
+      const fileContentType = result.file?.contentType || result.contentType;
+
+      if (!fileUrl) {
         throw new Error('Pose reference upload failed: No valid URL returned.');
       }
       
       return {
         success: true,
-        url: result.url || result.signedUrl,
-        fileId: result.fileId,
-        size: result.size,
-        contentType: result.contentType
+        url: fileUrl,
+        fileId: fileId,
+        size: fileSize,
+        contentType: fileContentType
       };
     } catch (err) {
-      setError('Failed to upload pose reference');
+      setError(`Failed to upload pose reference: ${err instanceof Error ? err.message : String(err)}`);
       throw err;
     } finally {
       setIsLoading(false);
@@ -188,20 +201,27 @@ export const useVPSAPI = () => {
       
       const result = await response.json();
 
-      if (!result.url && !result.signedUrl) {
+      // Access the URL from the nested 'file' object if it exists, otherwise assume top-level
+      const fileUrl = result.file?.url || result.file?.signedUrl || result.url || result.signedUrl;
+      const fileId = result.file?.fileId || result.fileId;
+      const fileSize = result.file?.size || result.size;
+      const fileContentType = result.file?.contentType || result.contentType;
+      const fileName = result.file?.filename || result.file?.name || file.name;
+
+      if (!fileUrl) {
         throw new Error('File upload failed: No valid URL returned.');
       }
       
       return {
         success: true,
-        url: result.url || result.signedUrl,
-        fileId: result.fileId,
-        size: result.size,
-        contentType: result.contentType,
-        filename: result.filename || file.name
+        url: fileUrl,
+        fileId: fileId,
+        size: fileSize,
+        contentType: fileContentType,
+        filename: fileName
       };
     } catch (err) {
-      setError('Failed to upload file');
+      setError(`Failed to upload file: ${err instanceof Error ? err.message : String(err)}`);
       throw err;
     } finally {
       setIsLoading(false);
