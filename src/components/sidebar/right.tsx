@@ -262,6 +262,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     return null;
   }
 
+  console.log("RightSidebar - uploadedGarments (before TryOnParameters):", uploadedGarments);
+
   return (
     <div className="w-96 min-w-96 bg-black/95 backdrop-blur-md border-l border-gray-700 shadow-lg">
       <div className="h-full flex flex-col">

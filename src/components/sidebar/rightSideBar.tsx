@@ -291,4 +291,6 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
   );
 };
 
+console.log("RightSideBar - uploadedGarments:", uploadedGarments);
+
 

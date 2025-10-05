@@ -30,6 +30,8 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [generationProgress, setGenerationProgress] = useState<StreamingTryOnResult[]>([]);
 
+  console.log("TryOnParameters - uploadedGarments:", uploadedGarments);
+
   // REMOVED: Local addUploadedGarment function. Now using the prop directly.
 
   const handleTryOnGenerate = async () => {
