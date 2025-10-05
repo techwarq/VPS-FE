@@ -42,6 +42,8 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
     setPoseResults
   } = useVPSStore();
 
+  console.log("RightSideBar - uploadedGarments:", uploadedGarments);
+
   const { 
     uploadGarments, 
     uploadPoseReference 
@@ -290,7 +292,5 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
     />
   );
 };
-
-console.log("RightSideBar - uploadedGarments:", uploadedGarments);
 
 
