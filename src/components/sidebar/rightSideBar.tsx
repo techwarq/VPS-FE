@@ -53,24 +53,31 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
 
   const handleFileUpload = async (files: FileList) => {
     setIsUploading(true);
+    console.log('📤 Starting handleFileUpload for files:', files);
     try {
       const fileArray = Array.from(files);
       const uploadPromises = fileArray.map(async (file) => {
-        const response = await apiUploadFile(file);
-        if (response && response.data && response.data.url) {
-          return {
-            id: response.data.fileId || `asset-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            url: response.data.url,
-            name: response.data.name || file.name
-          };
+        try {
+          const response = await apiUploadFile(file);
+          console.log('📦 apiUploadFile response for', file.name, ':', response);
+          if (response && response.data && response.data.url) {
+            return {
+              id: response.data.fileId || `asset-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+              url: response.data.url,
+              name: response.data.name || file.name
+            };
+          }
+        } catch (fileUploadError) {
+          console.error('❌ Error uploading single file', file.name, ':', fileUploadError);
         }
         return null;
       });
       const results = await Promise.all(uploadPromises);
       const validResults = results.filter((result): result is Asset => result !== null);
+      console.log('✅ Valid uploaded assets after filter:', validResults);
       setUploadedAssets(prev => [...prev, ...validResults]);
     } catch (error) {
-      console.error('Error uploading files:', error);
+      console.error('❌ Error in handleFileUpload:', error);
     } finally {
       setIsUploading(false);
     }
@@ -78,12 +85,15 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
 
   const handleGarmentUpload = async (files: FileList) => {
     setIsUploading(true);
+    console.log('👕 Starting handleGarmentUpload for files:', files);
     try {
       const fileArray = Array.from(files);
       const response = await uploadGarments(fileArray);
+      console.log('👗 uploadGarments response:', response);
       if (response.success && response.uploaded) {
         response.uploaded.forEach(item => {
           if (item.url) {
+            console.log('➕ Adding garment with URL:', item.url);
             addUploadedGarment(item.url);
           }
         });
@@ -99,10 +109,13 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
 
   const handlePoseReferenceUpload = async (files: FileList) => {
     setIsUploading(true);
+    console.log('🕺 Starting handlePoseReferenceUpload for files:', files);
     try {
       const file = files[0];
       const response = await uploadPoseReference(file);
+      console.log('💃 uploadPoseReference response:', response);
       if (response.success && response.url) {
+        console.log('➕ Adding pose reference with URL:', response.url);
         addUploadedPoseReference(response.url);
       } else {
         console.error('Pose reference upload failed: Invalid response format or no URL', response);

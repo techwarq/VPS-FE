@@ -26,7 +26,7 @@ export const uploadFile = async (file: File) => {
     
     return {
       data: {
-        url: result.url || result.signedUrl || URL.createObjectURL(file),
+        url: result.url || result.signedUrl,
         name: result.filename || file.name,
         fileId: result.fileId,
         size: result.size,
@@ -35,13 +35,7 @@ export const uploadFile = async (file: File) => {
     };
   } catch (error) {
     console.error('❌ Upload error:', error);
-    // Fallback to local URL if upload fails
-    return {
-      data: {
-        url: URL.createObjectURL(file),
-        name: file.name
-      }
-    };
+    throw new Error('File upload failed. Please try again.');
   }
 };
 
