@@ -11,6 +11,7 @@ interface Accessory {
 interface AccessoriesParametersProps {
   generatedAvatars: Array<{ url: string; angle?: string }>;
   uploadedAssets: Array<{ id: string; url: string; name: string }>;
+  setUploadedAssets: React.Dispatch<React.SetStateAction<Array<{ id: string; url: string; name: string }>>>; // Add this prop
   onAccessoriesGenerated?: (results: Array<{ url: string; id?: string }>) => void;
   onProgress?: (result: { url: string; id?: string }) => void;
 }

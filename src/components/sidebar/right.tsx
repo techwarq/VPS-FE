@@ -69,6 +69,7 @@ interface RightSidebarProps {
   addUploadedGarment: (url: string) => void; // Add this prop
   removeUploadedGarment: (url: string) => void;
   uploadedPoseReferences: string[];
+  addUploadedPoseReference: (url: string) => void; // Add this prop
   removeUploadedPoseReference: (url: string) => void;
 }
 
@@ -76,9 +77,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   rightDrawerOpen,
   setRightDrawerOpen,
   activeTab,
+  setActiveTab,
   activeToolTab,
   setActiveToolTab,
   uploadedAssets,
+  setUploadedAssets,
   isUploading,
   removeAsset,
   generatedAvatars,
@@ -91,7 +94,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onAvatarProgress,
   onTryOnProgress,
   onPoseProgress,
-  initializeAvatarGeneration, // FIX: Destructure the new prop
+  initializeAvatarGeneration,
   handleFileUpload,
   handleGarmentUpload,
   handlePoseReferenceUpload,
@@ -99,9 +102,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   handleDrag,
   handleDrop,
   uploadedGarments,
-  addUploadedGarment, // Destructure the new prop
+  addUploadedGarment,
   removeUploadedGarment,
   uploadedPoseReferences,
+  addUploadedPoseReference, // Destructure the new prop
   removeUploadedPoseReference
 }) => {
   const getSidebarTitle = () => {
@@ -216,6 +220,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               }))
             }
             uploadedAssets={uploadedAssets}
+            setUploadedAssets={setUploadedAssets} // Pass setUploadedAssets
             uploadedGarments={uploadedGarments}
             addUploadedGarment={addUploadedGarment} // Pass the prop down
             removeUploadedGarment={removeUploadedGarment}
@@ -232,7 +237,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 item_index: result.item_index
               }))}
               uploadedAssets={uploadedAssets}
+              setUploadedAssets={setUploadedAssets} // Pass setUploadedAssets
               uploadedPoseReferences={uploadedPoseReferences}
+              addUploadedPoseReference={addUploadedPoseReference} // Pass the prop down
               removeUploadedPoseReference={removeUploadedPoseReference}
               handlePoseReferenceUpload={handlePoseReferenceUpload}
               onPoseGenerated={onPoseGenerated}
@@ -250,6 +257,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               }))
             }
             uploadedAssets={uploadedAssets}
+            setUploadedAssets={setUploadedAssets} // Pass setUploadedAssets
             onAccessoriesGenerated={onAccessoriesGenerated}
           />
         );

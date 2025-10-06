@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { RightSidebar } from './right';
-import { type AvatarImage, type TryOnResult, type PoseResult } from '../../types';
 import { type StreamingAvatarResult, type StreamingTryOnResult, type StreamingPoseTransferResult, createImageUrl } from '../../services/api';
 import { useVPSAPI } from '../hooks/use-vps-api';
 import { useVPSStore } from '../../store/vpsstore';
@@ -15,6 +14,7 @@ interface Asset { // Re-define Asset interface here or import from types/index.t
 interface RightSideBarProps {
   uploadedAssets: Asset[];
   setUploadedAssets: React.Dispatch<React.SetStateAction<Asset[]>>;
+  addUploadedPoseReference: (url: string) => void; // Add this prop
 }
 
 export const RightSideBar: React.FC<RightSideBarProps> = ({
@@ -288,6 +288,7 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
       addUploadedGarment={addUploadedGarment}
       removeUploadedGarment={removeUploadedGarment}
       uploadedPoseReferences={uploadedPoseReferences}
+      addUploadedPoseReference={addUploadedPoseReference}
       removeUploadedPoseReference={removeUploadedPoseReference}
     />
   );

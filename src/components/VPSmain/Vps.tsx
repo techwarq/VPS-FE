@@ -493,6 +493,7 @@ export const VPSMain: React.FC = () => {
         addUploadedGarment={addUploadedGarment}
         removeUploadedGarment={removeUploadedGarment}
         uploadedPoseReferences={uploadedPoseReferences}
+        addUploadedPoseReference={addUploadedPoseReference}
         removeUploadedPoseReference={removeUploadedPoseReference}
       />
 

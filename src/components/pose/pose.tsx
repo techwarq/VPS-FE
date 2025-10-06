@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Loader2, Users, Shirt, Upload, X } from 'lucide-react';
 import { useVPSStore } from '../../store/vpsstore';
-import { apiService, type StreamingPoseTransferResult } from '../../services/api';
+import { apiService, type StreamingPoseTransferResult, type ModelImage } from '../../services/api';
 import { ASPECT_RATIOS } from '../../types/index';
 
 interface PoseParametersProps {
   tryonResults: Array<{ image_url: string; item_index?: number }>;
   uploadedAssets: Array<{ id: string; url: string; name: string }>;
+  setUploadedAssets: React.Dispatch<React.SetStateAction<Array<{ id: string; url: string; name: string }>>>; // Add this prop
   uploadedPoseReferences: string[];
+  addUploadedPoseReference: (url: string) => void; // Add this to props
   removeUploadedPoseReference: (url: string) => void;
   handlePoseReferenceUpload: (files: FileList) => void;
   onPoseGenerated?: (results: StreamingPoseTransferResult[]) => void;
@@ -18,6 +20,7 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
   tryonResults,
   uploadedAssets,
   uploadedPoseReferences,
+  addUploadedPoseReference, // Destructure the new prop
   removeUploadedPoseReference,
   handlePoseReferenceUpload,
   onPoseGenerated,
@@ -28,11 +31,7 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [generationProgress, setGenerationProgress] = useState<StreamingPoseTransferResult[]>([]);
 
-  const addUploadedPoseReference = (url: string) => {
-    if (!uploadedPoseReferences.includes(url)) {
-      console.log('Adding pose reference:', url);
-    }
-  };
+  // Removed: Local addUploadedPoseReference function. Now using the prop directly.
 
   const handlePoseGenerate = async () => {
     if (!poseForm.items?.length) {
@@ -45,11 +44,12 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
     setGenerationProgress([]);
 
     try {
-      // Convert form data to API format - use URLs directly instead of base64
-      const poseItems = poseForm.items.map((item: { image: string; poseref: string; pose_prompt?: string; background_prompt?: string }) => {
+      // Convert form data to API format
+      const poseItems = poseForm.items.map((item: { image: string; poseref?: string; pose_prompt?: string; background_prompt?: string }) => {
+        const poseReference: ModelImage | undefined = item.poseref ? { signedUrl: item.poseref } : undefined;
         return {
-          image: item.image, // Use the signed URL directly
-          pose_reference: item.poseref || undefined, // Use the signed URL directly
+          image: { signedUrl: item.image }, // Assume item.image is a signed URL string
+          pose_reference: poseReference, 
           background_prompt: item.background_prompt || undefined,
           pose_prompt: item.pose_prompt || undefined
         };

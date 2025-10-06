@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Loader2, Users, Shirt, Upload, X } from 'lucide-react';
+import Image from 'next/image'; // Import the Image component
 import { useVPSStore } from '../../store/vpsstore';
 import { apiService, type StreamingTryOnResult } from '../../services/api';
 import { ASPECT_RATIOS } from '../../types/index';
@@ -7,6 +8,7 @@ import { ASPECT_RATIOS } from '../../types/index';
 interface TryOnParametersProps {
   generatedAvatars: Array<{ url: string; angle?: string }>;
   uploadedAssets: Array<{ id: string; url: string; name: string }>;
+  setUploadedAssets: React.Dispatch<React.SetStateAction<Array<{ id: string; url: string; name: string }>>>; // Add this prop
   uploadedGarments: string[];
   addUploadedGarment: (url: string) => void; // Explicitly pass it as a prop
   removeUploadedGarment: (url: string) => void;
@@ -110,9 +112,11 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
                   onClick={() => addUploadedGarment(asset.url)}
                   className="relative cursor-pointer rounded-lg overflow-hidden border-2 border-gray-600 hover:border-purple-500"
                 >
-                  <img
+                  <Image
                     src={asset.url}
                     alt={asset.name}
+                    width={96} // Set appropriate width
+                    height={96} // Set appropriate height
                     className="w-full h-24 object-cover"
                   />
                   <p className="text-xs text-gray-400 truncate p-1">{asset.name}</p>
@@ -134,9 +138,11 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
             <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto">
               {uploadedGarments.map((url, index) => (
                 <div key={index} className="relative group">
-                  <img
+                  <Image
                     src={url}
                     alt={`Garment ${index + 1}`}
+                    width={96} // Set appropriate width
+                    height={96} // Set appropriate height
                     className="w-full h-24 object-cover rounded-lg border border-gray-600"
                   />
                   <button
@@ -214,9 +220,11 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
                     isSelected ? 'border-purple-500' : 'border-gray-600'
                   }`}
                 >
-                  <img
+                  <Image
                     src={avatar.url}
                     alt={`Avatar ${index}`}
+                    width={128} // Set appropriate width
+                    height={128} // Set appropriate height
                     className="w-full h-32 object-cover"
                   />
                   {isSelected && (
@@ -247,9 +255,11 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
             {tryonForm.items.map((item: { image: string; garment: string; prompt?: string; background_prompt?: string; reference_images?: string[]; style?: string }, index: number) => (
               <div key={index} className="p-3 bg-gray-700 rounded-lg">
                 <div className="flex items-start gap-3 mb-3">
-                  <img
+                  <Image
                     src={item.image}
                     alt={`Selected avatar ${index + 1}`}
+                    width={48} // Set appropriate width
+                    height={48} // Set appropriate height
                     className="w-12 h-12 object-cover rounded border border-gray-600"
                   />
                   <div className="flex-1">
