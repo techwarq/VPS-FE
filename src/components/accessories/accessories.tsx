@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { uploadFile } from '../../services/api/stages';
 
 interface Accessory {
   id: string;
@@ -32,29 +33,28 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
     try {
       const newAccessories: Accessory[] = [];
       
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const reader = new FileReader();
-        
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          const newAccessory: Accessory = {
-            id: `accessory_${Date.now()}_${i}`,
-            url: result,
-            name: file.name
+      // Upload files using the upload API
+      const uploadPromises = Array.from(files).map(async (file, index) => {
+        try {
+          const uploadResult = await uploadFile(file);
+          return {
+            id: `accessory_${Date.now()}_${index}`,
+            url: uploadResult.data.url,
+            name: uploadResult.data.name || file.name
           };
-          newAccessories.push(newAccessory);
-          
-          if (newAccessories.length === files.length) {
-            setAccessories(prev => [...prev, ...newAccessories]);
-            setIsUploading(false);
-          }
-        };
-        
-        reader.readAsDataURL(file);
-      }
+        } catch (error) {
+          console.error(`Error uploading file ${file.name}:`, error);
+          return null;
+        }
+      });
+      
+      const results = await Promise.all(uploadPromises);
+      const validAccessories = results.filter((accessory): accessory is Accessory => accessory !== null);
+      
+      setAccessories(prev => [...prev, ...validAccessories]);
     } catch (error) {
       console.error('Error uploading accessories:', error);
+    } finally {
       setIsUploading(false);
     }
   };
@@ -72,21 +72,18 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
     setIsGenerating(true);
     
     try {
-      // Convert avatar image to base64
+      // Upload the selected avatar image to get a signed URL
       const avatarResponse = await fetch(selectedAvatar);
       const avatarBlob = await avatarResponse.blob();
-      const avatarBase64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(avatarBlob);
-      });
+      const avatarFile = new File([avatarBlob], 'avatar.png', { type: 'image/png' });
+      const avatarUploadResult = await uploadFile(avatarFile);
 
       const requestBody = {
         items: [
           {
-            image: avatarBase64,
+            image: avatarUploadResult.data.url, // Use signed URL instead of base64
             accessories: accessories.map(accessory => ({
-              url: accessory.url
+              url: accessory.url // These are already signed URLs from upload
             }))
           }
         ],
