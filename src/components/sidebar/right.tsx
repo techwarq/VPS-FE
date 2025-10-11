@@ -13,7 +13,8 @@ import {
 import { 
   type AvatarImage,
   type TryOnResult, 
-  type PoseResult 
+  type PoseResult,
+  type AccessoriesResult
 } from '../../types';
 
 interface Asset {
@@ -38,13 +39,14 @@ interface RightSidebarProps {
   // FIX: Change generatedAvatars type to match the state from the store
   generatedAvatars: AvatarImage[];
   tryonResults: TryOnResult[];
-  poseResults: PoseResult[];  
+  poseResults: PoseResult[];
+  accessoriesResults: AccessoriesResult[];  
   
   // Result handlers - new callbacks for receiving API results
   onAvatarGenerated?: (avatars: StreamingAvatarResult[]) => void;
   onTryOnGenerated?: (results: StreamingTryOnResult[]) => void;
   onPoseGenerated?: (results: StreamingPoseTransferResult[]) => void;
-  onAccessoriesGenerated?: (results: Array<{ url: string; id?: string }>) => void;
+  onAccessoriesGenerated?: (results: Array<{ url: string; id?: string; isLoading?: boolean }>) => void;
   
   // Progress handlers - optional callbacks for real-time updates
   onAvatarProgress?: (result: StreamingAvatarResult) => void;
@@ -87,6 +89,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   generatedAvatars,
   tryonResults,
   poseResults,
+  accessoriesResults,
   onAvatarGenerated,
   onTryOnGenerated,
   onPoseGenerated,

@@ -12,7 +12,7 @@ import { uploadFile } from '../../services/api/stages';
 import { useVPSAPI } from '../hooks/use-vps-api';
 import { LeftSidebar } from '../sidebar/left';
 import { RightSidebar } from '../sidebar/right';
-import { ResultDisplay } from '../sidebar/response';
+import { ResultDisplay } from './ResultDisplay';
 // import { ImageCarousel } from './imagecaroussel';
 import { 
   type StreamingAvatarResult, 
@@ -20,7 +20,7 @@ import {
   type StreamingPoseTransferResult,
   createImageUrl
 } from '../../services/api';
-import { type AvatarImage, type TryOnResult, type PoseResult } from '../../types';
+import { type AvatarImage, type TryOnResult, type PoseResult, type AccessoriesResult } from '../../types';
 
 // Define proper types for uploaded assets
 interface UploadedAsset {
@@ -43,6 +43,8 @@ export const VPSMain: React.FC = () => {
     setTryonResults,
     poseResults,
     setPoseResults,
+    accessoriesResults,
+    setAccessoriesResults,
     uploadedGarments,
     addUploadedGarment,
     removeUploadedGarment,
@@ -137,10 +139,15 @@ export const VPSMain: React.FC = () => {
     setPoseResults(convertedResults);
   };
 
-  const handleAccessoriesGenerated = (results: Array<{ url: string; id?: string }>) => {
+  const handleAccessoriesGenerated = (results: Array<{ url: string; id?: string; isLoading?: boolean }>) => {
     console.log('Accessories results generated:', results);
-    // For now, we'll handle accessories results similar to other results
-    // You can extend this based on your specific needs
+    const convertedResults = results.map((result, index) => ({
+      id: result.id || `accessories-${index}-${Date.now()}`,
+      url: result.url,
+      item_index: index,
+      isLoading: result.isLoading || false
+    }));
+    setAccessoriesResults(convertedResults);
   };
 
   const handleAvatarProgress = (result: StreamingAvatarResult) => {
@@ -440,6 +447,7 @@ export const VPSMain: React.FC = () => {
             generatedAvatars={generatedAvatars}
             tryonResults={tryonResults}
             poseResults={poseResults}
+            accessoriesResults={accessoriesResults}
             openCarousel={openCarousel}
             handleDownload={handleDownload}
           />
@@ -463,6 +471,7 @@ export const VPSMain: React.FC = () => {
         generatedAvatars={generatedAvatars}
         tryonResults={tryonResults}
         poseResults={poseResults}
+        accessoriesResults={accessoriesResults}
         
         // New callback handlers
         onAvatarGenerated={handleAvatarGenerated}

@@ -11,6 +11,7 @@ export interface VPSState {
   generatedAvatars: AvatarImage[];
   tryonResults: TryOnResult[];
   poseResults: PoseResult[];
+  accessoriesResults: AccessoriesResult[];
   uploadedGarments: string[];
   uploadedPoseReferences: string[];
 }
@@ -90,6 +91,13 @@ export interface PoseResult {
   id: string;
   url: string; // Changed from image_url to url
   item_index?: number; // Added to match streaming result
+  isLoading?: boolean;
+}
+
+export interface AccessoriesResult {
+  id: string;
+  url: string;
+  item_index?: number;
   isLoading?: boolean;
 }
 

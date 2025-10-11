@@ -2,10 +2,11 @@ import React from 'react';
 import { Download, Maximize2, Loader2 } from 'lucide-react';
 
 interface ResultDisplayProps {
-  activeTab: 'avatar' | 'tryon' | 'pose';
+  activeTab: 'avatar' | 'tryon' | 'pose' | 'accessories';
   generatedAvatars: Array<{ id: string; url: string; angle?: string; isLoading?: boolean }>;
   tryonResults: Array<{ id: string; url: string; item_index?: number }>;
   poseResults: Array<{ id: string; url: string; item_index?: number }>;
+  accessoriesResults: Array<{ id: string; url: string; item_index?: number }>;
   openCarousel: (images: string[]) => void;
   handleDownload: (imageUrl: string, index: number) => void;
 }
@@ -15,6 +16,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
   generatedAvatars,
   tryonResults,
   poseResults,
+  accessoriesResults,
   openCarousel,
   handleDownload
 }) => {
@@ -26,6 +28,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         return tryonResults;
       case 'pose':
         return poseResults;
+      case 'accessories':
+        return accessoriesResults;
       default:
         return [];
     }
@@ -39,6 +43,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         return 'No try-on results yet. Generate avatars first, then try on garments.';
       case 'pose':
         return 'No pose transfers yet. Generate try-on results first, then transfer poses.';
+      case 'accessories':
+        return 'No accessories results yet. Generate avatars first, then add accessories.';
       default:
         return 'No results to display.';
     }

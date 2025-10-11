@@ -9,6 +9,7 @@ import {
   AvatarImage,
   TryOnResult,
   PoseResult,
+  AccessoriesResult,
 } from '../types/index';
 
 interface VPSStore extends VPSState {
@@ -29,6 +30,7 @@ interface VPSStore extends VPSState {
   setGeneratedAvatars: Dispatch<SetStateAction<AvatarImage[]>>;
   setTryonResults: Dispatch<SetStateAction<TryOnResult[]>>;
   setPoseResults: Dispatch<SetStateAction<PoseResult[]>>;
+  setAccessoriesResults: Dispatch<SetStateAction<AccessoriesResult[]>>;
 
   addUploadedGarment: (url: string) => void;
   removeUploadedGarment: (url: string) => void;
@@ -78,6 +80,7 @@ export const useVPSStore = create<VPSStore>((set) => ({
   generatedAvatars: [],
   tryonResults: [],
   poseResults: [],
+  accessoriesResults: [],
   uploadedGarments: [],
   uploadedPoseReferences: [],
 
@@ -141,6 +144,11 @@ export const useVPSStore = create<VPSStore>((set) => ({
       poseResults: typeof updater === 'function' ? updater(state.poseResults) : updater,
     })),
   
+  setAccessoriesResults: (updater) =>
+    set((state) => ({
+      accessoriesResults: typeof updater === 'function' ? updater(state.accessoriesResults) : updater,
+    })),
+  
   addUploadedGarment: (url) =>
     set((state) => ({
       uploadedGarments: [...state.uploadedGarments, url],
@@ -166,6 +174,7 @@ export const useVPSStore = create<VPSStore>((set) => ({
       generatedAvatars: [],
       tryonResults: [],
       poseResults: [],
+      accessoriesResults: [],
       uploadedGarments: [],
       uploadedPoseReferences: [],
     }),

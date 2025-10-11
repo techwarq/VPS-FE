@@ -13,7 +13,7 @@ interface AccessoriesParametersProps {
   generatedAvatars: Array<{ url: string; angle?: string }>;
   uploadedAssets: Array<{ id: string; url: string; name: string }>;
   setUploadedAssets: React.Dispatch<React.SetStateAction<Array<{ id: string; url: string; name: string }>>>; // Add this prop
-  onAccessoriesGenerated?: (results: Array<{ url: string; id?: string }>) => void;
+  onAccessoriesGenerated?: (results: Array<{ url: string; id?: string; isLoading?: boolean }>) => void;
   onProgress?: (result: { url: string; id?: string }) => void;
 }
 
@@ -70,6 +70,15 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
     }
 
     setIsGenerating(true);
+    
+    // Add loading placeholder
+    if (onAccessoriesGenerated) {
+      onAccessoriesGenerated([{
+        id: 'loading-placeholder',
+        url: '',
+        isLoading: true
+      }]);
+    }
     
     try {
       console.log('🔍 Selected avatar:', selectedAvatar);
