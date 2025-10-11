@@ -72,16 +72,14 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
     setIsGenerating(true);
     
     try {
-      // Upload the selected avatar image to get a signed URL
-      const avatarResponse = await fetch(selectedAvatar);
-      const avatarBlob = await avatarResponse.blob();
-      const avatarFile = new File([avatarBlob], 'avatar.png', { type: 'image/png' });
-      const avatarUploadResult = await uploadFile(avatarFile);
-
+      console.log('🔍 Selected avatar:', selectedAvatar);
+      console.log('🔍 Accessories:', accessories);
+      
+      // Use the selected avatar directly (it's already a signed URL from the UI)
       const requestBody = {
         items: [
           {
-            image: avatarUploadResult.data.url, // Use signed URL instead of base64
+            image: selectedAvatar, // Use the signed URL directly
             accessories: accessories.map(accessory => ({
               url: accessory.url // These are already signed URLs from upload
             }))
@@ -90,7 +88,10 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
         aspect_ratio: aspectRatio
       };
 
-      const response = await fetch('http://localhost:4000/api/photoshoot/add-accessories', {
+      console.log('🚀 Add accessories request payload:', JSON.stringify(requestBody, null, 2));
+
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${API_BASE_URL}/api/photoshoot/add-accessories`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
