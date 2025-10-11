@@ -139,15 +139,62 @@ export const VPSMain: React.FC = () => {
     setPoseResults(convertedResults);
   };
 
-  const handleAccessoriesGenerated = (results: Array<{ url: string; id?: string; isLoading?: boolean }>) => {
+  const handleAccessoriesGenerated = (results: unknown) => {
     console.log('Accessories results generated:', results);
-    const convertedResults = results.map((result, index) => ({
-      id: result.id || `accessories-${index}-${Date.now()}`,
-      url: result.url,
-      item_index: index,
-      isLoading: result.isLoading || false
-    }));
-    setAccessoriesResults(convertedResults);
+    
+    // Handle the actual API response format
+    if (Array.isArray(results)) {
+      const convertedResults: AccessoriesResult[] = [];
+      
+      results.forEach((item: unknown, itemIndex: number) => {
+        const typedItem = item as { images?: unknown[] };
+        if (typedItem.images && Array.isArray(typedItem.images)) {
+          typedItem.images.forEach((image: unknown, imageIndex: number) => {
+            const typedImage = image as { signedUrl?: string; url?: string };
+            convertedResults.push({
+              id: `accessories-${itemIndex}-${imageIndex}-${Date.now()}`,
+              url: typedImage.signedUrl || typedImage.url || '',
+              item_index: itemIndex,
+              isLoading: false
+            });
+          });
+        }
+      });
+      
+      setAccessoriesResults(convertedResults);
+    } else {
+      // Fallback for simple format
+      const convertedResults = (results as unknown[]).map((result: unknown, index: number) => {
+        const typedResult = result as { id?: string; url?: string; isLoading?: boolean };
+        return {
+          id: typedResult.id || `accessories-${index}-${Date.now()}`,
+          url: typedResult.url || '',
+          item_index: index,
+          isLoading: typedResult.isLoading || false
+        };
+      });
+      setAccessoriesResults(convertedResults);
+    }
+  };
+
+  const handleAccessoriesProgress = (result: unknown) => {
+    console.log('Accessories progress:', result);
+    
+    // Handle streaming results - add to accessories results in real-time
+    const typedResult = result as { images?: unknown[]; item_index?: number };
+    if (typedResult.images && Array.isArray(typedResult.images)) {
+      const newResults: AccessoriesResult[] = typedResult.images.map((image: unknown, imageIndex: number) => {
+        const typedImage = image as { signedUrl?: string; url?: string };
+        return {
+          id: `accessories-${typedResult.item_index}-${imageIndex}-${Date.now()}`,
+          url: typedImage.signedUrl || typedImage.url || '',
+          item_index: typedResult.item_index || 0,
+          isLoading: false
+        };
+      });
+      
+      setAccessoriesResults(prev => [...prev, ...newResults]);
+    }
   };
 
   const handleAvatarProgress = (result: StreamingAvatarResult) => {
@@ -483,6 +530,7 @@ export const VPSMain: React.FC = () => {
         onAvatarProgress={handleAvatarProgress}
         onTryOnProgress={handleTryOnProgress}
         onPoseProgress={handlePoseProgress}
+        onAccessoriesProgress={handleAccessoriesProgress}
         
         // File upload handlers
         handleFileUpload={handleFileUpload}

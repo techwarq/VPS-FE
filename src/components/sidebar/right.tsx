@@ -46,12 +46,13 @@ interface RightSidebarProps {
   onAvatarGenerated?: (avatars: StreamingAvatarResult[]) => void;
   onTryOnGenerated?: (results: StreamingTryOnResult[]) => void;
   onPoseGenerated?: (results: StreamingPoseTransferResult[]) => void;
-  onAccessoriesGenerated?: (results: Array<{ url: string; id?: string; isLoading?: boolean }>) => void;
+  onAccessoriesGenerated?: (results: unknown) => void;
   
   // Progress handlers - optional callbacks for real-time updates
   onAvatarProgress?: (result: StreamingAvatarResult) => void;
   onTryOnProgress?: (result: StreamingTryOnResult) => void;
   onPoseProgress?: (result: StreamingPoseTransferResult) => void;
+  onAccessoriesProgress?: (result: unknown) => void;
   
   // FIX: Add the missing prop to the interface
   initializeAvatarGeneration?: () => void;
@@ -97,6 +98,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onAvatarProgress,
   onTryOnProgress,
   onPoseProgress,
+  onAccessoriesProgress,
   initializeAvatarGeneration,
   handleFileUpload,
   handleGarmentUpload,
@@ -262,6 +264,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             uploadedAssets={uploadedAssets}
             setUploadedAssets={setUploadedAssets} // Pass setUploadedAssets
             onAccessoriesGenerated={onAccessoriesGenerated}
+            onProgress={onAccessoriesProgress}
           />
         );
       default:

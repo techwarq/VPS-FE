@@ -13,25 +13,26 @@ interface AccessoriesParametersProps {
   generatedAvatars: Array<{ url: string; angle?: string }>;
   uploadedAssets: Array<{ id: string; url: string; name: string }>;
   setUploadedAssets: React.Dispatch<React.SetStateAction<Array<{ id: string; url: string; name: string }>>>; // Add this prop
-  onAccessoriesGenerated?: (results: Array<{ url: string; id?: string; isLoading?: boolean }>) => void;
+  onAccessoriesGenerated?: (results: unknown) => void;
   onProgress?: (result: { url: string; id?: string }) => void;
 }
 
 export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
   generatedAvatars,
-  onAccessoriesGenerated
+  onAccessoriesGenerated,
+  onProgress
 }) => {
-  const [selectedAvatar, setSelectedAvatar] = useState<string>('');
   const [accessories, setAccessories] = useState<Accessory[]>([]);
   const [aspectRatio, setAspectRatio] = useState<string>('3:4');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState<unknown[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAccessoryUpload = async (files: FileList) => {
     setIsUploading(true);
     try {
-      const newAccessories: Accessory[] = [];
+      // const newAccessories: Accessory[] = [];
       
       // Upload files using the upload API
       const uploadPromises = Array.from(files).map(async (file, index) => {
@@ -64,36 +65,31 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
   };
 
   const generateAccessories = async () => {
-    if (!selectedAvatar || accessories.length === 0) {
-      alert('Please select an avatar and add at least one accessory');
+    if (generatedAvatars.length === 0) {
+      alert('Please generate avatars first');
+      return;
+    }
+
+    if (accessories.length === 0) {
+      alert('Please upload at least one accessory');
       return;
     }
 
     setIsGenerating(true);
-    
-    // Add loading placeholder
-    if (onAccessoriesGenerated) {
-      onAccessoriesGenerated([{
-        id: 'loading-placeholder',
-        url: '',
-        isLoading: true
-      }]);
-    }
+    setGenerationProgress([]);
     
     try {
-      console.log('🔍 Selected avatar:', selectedAvatar);
+      console.log('🔍 Available avatars:', generatedAvatars);
       console.log('🔍 Accessories:', accessories);
       
-      // Use the selected avatar directly (it's already a signed URL from the UI)
+      // Create items for each avatar
       const requestBody = {
-        items: [
-          {
-            image: selectedAvatar, // Use the signed URL directly
-            accessories: accessories.map(accessory => ({
-              url: accessory.url // These are already signed URLs from upload
-            }))
-          }
-        ],
+        items: generatedAvatars.map(avatar => ({
+          image: avatar.url, // Use the signed URL directly
+          accessories: accessories.map(accessory => ({
+            url: accessory.url // These are already signed URLs from upload
+          }))
+        })),
         aspect_ratio: aspectRatio
       };
 
@@ -112,13 +108,52 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const results = await response.json();
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.trim() === '') continue;
+          
+          try {
+            const data = JSON.parse(line);
+            console.log('📦 Streaming accessories result:', data);
+            
+            // Add to progress
+            setGenerationProgress(prev => [...prev, data]);
+            
+            // Call progress callback
+            if (onProgress) {
+              onProgress(data);
+            }
+          } catch {
+            console.warn('Failed to parse streaming data:', line);
+          }
+        }
+      }
+
+      // Get final results
+      const finalResults = generationProgress;
+      console.log('Accessories API final results:', finalResults);
       
       if (onAccessoriesGenerated) {
-        onAccessoriesGenerated(results);
+        onAccessoriesGenerated(finalResults);
       }
       
-      console.log('Accessories generated successfully:', results);
+      console.log('Accessories generated successfully:', finalResults);
     } catch (error) {
       console.error('Error generating accessories:', error);
       alert('Failed to generate accessories. Please try again.');
@@ -132,42 +167,34 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
       <div>
         <h3 className="text-lg font-semibold text-white mb-4">Add Accessories</h3>
         <p className="text-gray-400 text-sm mb-6">
-          Select an avatar and add accessories like sunglasses, jewelry, and more.
+          Upload accessories and they will be automatically applied to all generated avatars.
         </p>
       </div>
 
-      {/* Avatar Selection */}
+      {/* Available Avatars Info */}
       <div>
         <label className="block text-sm font-medium text-white mb-3">
-          Select Avatar
+          Available Avatars ({generatedAvatars.length})
         </label>
-        <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto">
-          {generatedAvatars.map((avatar, index) => (
-            <div
-              key={index}
-              className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                selectedAvatar === avatar.url
-                  ? 'border-green-500 ring-2 ring-green-500/20'
-                  : 'border-gray-600 hover:border-gray-500'
-              }`}
-              onClick={() => setSelectedAvatar(avatar.url)}
-            >
-              <img
-                src={avatar.url}
-                alt={`Avatar ${index + 1}`}
-                className="w-full h-20 object-cover"
-              />
-              {selectedAvatar === avatar.url && (
-                <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
+        {generatedAvatars.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto">
+            {generatedAvatars.map((avatar, index) => (
+              <div
+                key={index}
+                className="relative rounded-lg overflow-hidden border-2 border-gray-600"
+              >
+                <img
+                  src={avatar.url}
+                  alt={`Avatar ${index + 1}`}
+                  className="w-full h-20 object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 text-center">
+                  {avatar.angle || `Avatar ${index + 1}`}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-        {generatedAvatars.length === 0 && (
+              </div>
+            ))}
+          </div>
+        ) : (
           <p className="text-gray-500 text-sm text-center py-4">
             No avatars available. Generate some avatars first.
           </p>
@@ -250,22 +277,41 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
         </select>
       </div>
 
+      {/* Generation Progress */}
+      {isGenerating && generationProgress.length > 0 && (
+        <div className="p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
+          <p className="text-sm text-blue-400 mb-2">
+            Adding accessories... ({generationProgress.length} results)
+          </p>
+          <div className="space-y-1 max-h-20 overflow-y-auto">
+            {generationProgress.map((result, index) => {
+              const typedResult = result as { shot_name?: string };
+              return (
+                <div key={index} className="text-xs text-gray-400">
+                  <span className="text-green-400">✅ Result {index + 1}: {typedResult.shot_name || 'Generated'}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Generate Button */}
       <div className="pt-4">
         <Button
           onClick={generateAccessories}
-          disabled={!selectedAvatar || accessories.length === 0 || isGenerating}
+          disabled={generatedAvatars.length === 0 || accessories.length === 0 || isGenerating}
           className="w-full bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
         >
           {isGenerating ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              Adding Accessories...
+              Adding Accessories to {generatedAvatars.length} Avatar{generatedAvatars.length > 1 ? 's' : ''}...
             </>
           ) : (
             <>
               <Sparkles className="w-4 h-4 mr-2" />
-              Add Accessories
+              Add Accessories to {generatedAvatars.length} Avatar{generatedAvatars.length > 1 ? 's' : ''}
             </>
           )}
         </Button>
@@ -275,10 +321,11 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
       <div className="bg-gray-800/50 rounded-lg p-4">
         <h4 className="text-sm font-medium text-white mb-2">Instructions</h4>
         <ul className="text-xs text-gray-400 space-y-1">
-          <li>• Select an avatar from your generated avatars</li>
+          <li>• Generate avatars first in the Avatar tab</li>
           <li>• Upload accessory images (sunglasses, jewelry, etc.)</li>
           <li>• Choose your preferred aspect ratio</li>
-          <li>• Click &quot;Add Accessories&quot; to generate the result</li>
+          <li>• Click &quot;Add Accessories&quot; to apply to all avatars</li>
+          <li>• Results will stream in real-time as they&apos;re generated</li>
         </ul>
       </div>
     </div>

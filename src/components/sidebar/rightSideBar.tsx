@@ -185,7 +185,7 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
     })));
   };
 
-  const onAccessoriesGenerated = (results: Array<{ url: string; id?: string }>) => {
+  const onAccessoriesGenerated = (results: unknown) => {
     console.log('Accessories generated:', results);
     // Implement logic to store accessories results if needed
   };
