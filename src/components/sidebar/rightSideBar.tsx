@@ -39,7 +39,8 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
     tryonResults,
     setTryonResults,
     poseResults,
-    setPoseResults
+    setPoseResults,
+    accessoriesResults
   } = useVPSStore();
 
   console.log("RightSideBar - uploadedGarments:", uploadedGarments);
@@ -270,6 +271,7 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
       generatedAvatars={generatedAvatars}
       tryonResults={tryonResults}
       poseResults={poseResults}
+      accessoriesResults={accessoriesResults}
       onAvatarGenerated={onAvatarGenerated}
       onTryOnGenerated={onTryOnGenerated}
       onPoseGenerated={onPoseGenerated}
