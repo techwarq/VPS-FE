@@ -91,7 +91,7 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
       console.log('🚀 Add accessories request payload:', JSON.stringify(requestBody, null, 2));
 
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${API_BASE_URL}/api/photoshoot/add-accessories`, {
+      const response = await fetch(`${API_BASE_URL}/photoshoot/add-accessories`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
