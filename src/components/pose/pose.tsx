@@ -20,7 +20,7 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
   tryonResults,
   uploadedAssets,
   uploadedPoseReferences,
-  addUploadedPoseReference, // Destructure the new prop
+  addUploadedPoseReference,
   removeUploadedPoseReference,
   handlePoseReferenceUpload,
   onPoseGenerated,
@@ -44,12 +44,11 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
     setGenerationProgress([]);
 
     try {
-      // Convert form data to API format
+      // Convert form data to API format - send simple payload with signed URLs
       const poseItems = poseForm.items.map((item: { image: string; poseref?: string; pose_prompt?: string; background_prompt?: string }) => {
-        const poseReference: ModelImage | undefined = item.poseref ? { signedUrl: item.poseref } : undefined;
         return {
-          image: { signedUrl: item.image }, // Assume item.image is a signed URL string
-          pose_reference: poseReference, 
+          image: item.image, // Send signed URL directly as string
+          pose_reference: item.poseref || undefined, // Send signed URL directly as string
           background_prompt: item.background_prompt || undefined,
           pose_prompt: item.pose_prompt || undefined
         };
@@ -58,7 +57,7 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
       const request = {
         items: poseItems,
         aspect_ratio: poseForm.aspect_ratio,
-        
+        negative_prompt: "blurry, low quality" // Add default negative prompt
       };
 
       const response = await apiService.generatePoseTransfer(

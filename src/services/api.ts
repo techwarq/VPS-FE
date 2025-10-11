@@ -226,8 +226,8 @@ export interface TryOnRequest {
 }
 
 export interface PoseTransferItem {
-  image: ModelImage | string; // Support both ModelImage and URL string
-  pose_reference?: ModelImage | string; // Support both ModelImage and URL string
+  image: string; // Signed URL as string
+  pose_reference?: string; // Signed URL as string
   background_prompt?: string;
   pose_prompt?: string;
 }
