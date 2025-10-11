@@ -44,21 +44,41 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
     setGenerationProgress([]);
 
     try {
+      console.log('🔍 Pose form items before processing:', poseForm.items);
+      console.log('🔍 Uploaded pose references:', uploadedPoseReferences);
+      
       // Convert form data to API format - send simple payload with signed URLs
       const poseItems = poseForm.items.map((item: { image: string; poseref?: string; pose_prompt?: string; background_prompt?: string }) => {
-        return {
+        const poseItem: any = {
           image: item.image, // Send signed URL directly as string
-          pose_reference: item.poseref || undefined, // Send signed URL directly as string
-          background_prompt: item.background_prompt || undefined,
-          pose_prompt: item.pose_prompt || undefined
         };
+        
+        // Only include pose_reference if it's not empty
+        if (item.poseref && item.poseref.trim() !== '') {
+          poseItem.pose_reference = item.poseref;
+        }
+        
+        // Only include other fields if they have values
+        if (item.background_prompt && item.background_prompt.trim() !== '') {
+          poseItem.background_prompt = item.background_prompt;
+        }
+        
+        if (item.pose_prompt && item.pose_prompt.trim() !== '') {
+          poseItem.pose_prompt = item.pose_prompt;
+        }
+        
+        return poseItem;
       });
+
+      console.log('🔍 Processed pose items:', poseItems);
 
       const request = {
         items: poseItems,
         aspect_ratio: poseForm.aspect_ratio,
         negative_prompt: "blurry, low quality" // Add default negative prompt
       };
+
+      console.log('🚀 Final pose transfer request:', JSON.stringify(request, null, 2));
 
       const response = await apiService.generatePoseTransfer(
         request,
