@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2, Users, Shirt, Upload, X } from 'lucide-react';
 import { useVPSStore } from '../../store/vpsstore';
-import { apiService, type StreamingPoseTransferResult, type ModelImage } from '../../services/api';
+import { apiService, type StreamingPoseTransferResult } from '../../services/api';
 import { ASPECT_RATIOS } from '../../types/index';
 
 interface PoseParametersProps {
@@ -49,7 +49,12 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
       
       // Convert form data to API format - send simple payload with signed URLs
       const poseItems = poseForm.items.map((item: { image: string; poseref?: string; pose_prompt?: string; background_prompt?: string }) => {
-        const poseItem: any = {
+        const poseItem: {
+          image: string;
+          pose_reference?: string;
+          background_prompt?: string;
+          pose_prompt?: string;
+        } = {
           image: item.image, // Send signed URL directly as string
         };
         
