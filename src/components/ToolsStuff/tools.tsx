@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Upload, X, Loader2, Download } from 'lucide-react';
+import { ImageWithFallback } from '../ui/ImageWithFallback';
 
 // Assets Management Component
 interface AssetsContentProps {
@@ -74,10 +75,17 @@ export const AssetsContent: React.FC<AssetsContentProps> = ({
           <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
             {uploadedAssets.map((asset, index) => (
               <div key={asset.id} className="relative group">
-                <img
+                <ImageWithFallback
                   src={asset.url}
                   alt={asset.name}
                   className="w-full h-24 object-cover rounded-lg border border-gray-600"
+                  fallbackText="Failed to load"
+                  onError={(url, error) => {
+                    console.error('❌ Asset image failed to load:', url, error);
+                  }}
+                  onSuccess={(url) => {
+                    console.log('✅ Asset image loaded successfully:', url);
+                  }}
                 />
                 <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   {handleDownload && (

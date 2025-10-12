@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Upload, Loader2, Download } from 'lucide-react';
+import { ImageWithFallback } from '../ui/ImageWithFallback';
 import { AvatarParameters } from '../avatar/avatar';
 import { TryOnParameters } from '../tryon/tryon';
 import { PoseParameters } from '../pose/pose';
@@ -333,10 +334,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
               {uploadedAssets.map((asset, index) => (
                 <div key={asset.id} className="relative group">
-                  <img
+                  <ImageWithFallback
                     src={asset.url}
                     alt={asset.name}
                     className="w-full h-16 object-cover rounded border border-gray-600"
+                    fallbackText="Failed to load"
+                    onError={(url, error) => {
+                      console.error('❌ Asset image failed to load:', url, error);
+                    }}
+                    onSuccess={(url) => {
+                      console.log('✅ Asset image loaded successfully:', url);
+                    }}
                   />
                   <div className="absolute top-0 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {handleDownload && (

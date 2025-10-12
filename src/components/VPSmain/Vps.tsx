@@ -385,6 +385,21 @@ export const VPSMain: React.FC = () => {
           if (fileData.contentType) asset.contentType = fileData.contentType;
           
           console.log('🔍 Created asset:', asset);
+          
+          // Test the image URL immediately after creation
+          if (asset.url) {
+            console.log('🔍 Testing image URL accessibility:', asset.url);
+            try {
+              const testResponse = await fetch(asset.url, { method: 'HEAD' });
+              console.log('🔍 Image URL test result:', testResponse.status, testResponse.statusText);
+              if (!testResponse.ok) {
+                console.error('❌ Image URL not accessible:', asset.url, testResponse.status);
+              }
+            } catch (testError) {
+              console.error('❌ Image URL test failed:', asset.url, testError);
+            }
+          }
+          
           return asset;
         }
         
@@ -556,6 +571,26 @@ export const VPSMain: React.FC = () => {
   const removeAsset = (id: string) => {
     setUploadedAssets(prev => prev.filter(asset => asset.id !== id));
   };
+
+  // Debug function to test specific image URL
+  const testImageUrl = async (url: string) => {
+    console.log('🔍 Testing image URL:', url);
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      console.log('🔍 Test result:', response.status, response.statusText);
+      console.log('🔍 Response headers:', Object.fromEntries(response.headers.entries()));
+      return response.ok;
+    } catch (error) {
+      console.error('❌ Test failed:', error);
+      return false;
+    }
+  };
+
+  // Test the specific URL from your example
+  React.useEffect(() => {
+    const testUrl = 'https://vps-be.vercel.app/api/files/68eb564ad4f77ce53ec2270f?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlSWQiOiI2OGViNTY0YWQ0Zjc3Y2U1M2VjMjI3MGYiLCJ1c2VySWQiOiJhbm9ueW1vdXMiLCJwZXJtaXNzaW9ucyI6WyJyZWFkIl0sIm1ldGFkYXRhIjoi2OGViNTY0YWQ0Zjc3Y2U1M2VjMjI3MGYiLCJmaWxlbmFtZSI6IkphZGVuIFNtaXRow6LCncKdwqQuanBlZyIsInNpemUiOjc0MTE0LCJjb250ZW50VHlwZSI6ImltYWdlL2pwZWcifSwiaWF0IjoxNzYwMjUzNTE1LCJleHAiOjE3NjAzMzk5MTV9.yjMbNOoRG9pYi2zMGncd7t8tQO9090dkyGniJLH3GEg';
+    testImageUrl(testUrl);
+  }, []);
 
   const getPageTitle = () => {
     const tab = [

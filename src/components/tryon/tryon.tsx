@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Loader2, Users, Shirt, Upload, X } from 'lucide-react';
+import { ImageWithFallback } from '../ui/ImageWithFallback';
 import { useVPSStore } from '../../store/vpsstore';
 import { apiService, type StreamingTryOnResult } from '../../services/api';
 import { ASPECT_RATIOS } from '../../types/index';
@@ -153,10 +154,17 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
                   onClick={() => addUploadedGarment(asset.url)}
                   className="relative cursor-pointer rounded-lg overflow-hidden border-2 border-gray-600 hover:border-purple-500"
                 >
-                  <img
+                  <ImageWithFallback
                     src={asset.url}
                     alt={asset.name}
                     className="w-full h-24 object-cover"
+                    fallbackText="Failed to load"
+                    onError={(url, error) => {
+                      console.error('❌ Tryon asset image failed to load:', url, error);
+                    }}
+                    onSuccess={(url) => {
+                      console.log('✅ Tryon asset image loaded successfully:', url);
+                    }}
                   />
                   <p className="text-xs text-gray-400 truncate p-1">{asset.name}</p>
                   {uploadedGarments.includes(asset.url) && (
