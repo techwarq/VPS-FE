@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { X, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 
 interface ImageCarouselProps {
   images: string[];
@@ -10,6 +10,7 @@ interface ImageCarouselProps {
   position: { x: number; y: number };
   setPosition: (position: { x: number; y: number }) => void;
   onClose: () => void;
+  onDownload?: (imageUrl: string, index: number) => void;
 }
 
 export const ImageCarousel: React.FC<ImageCarouselProps> = ({
@@ -20,16 +21,57 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   setZoom,
   position,
   setPosition,
-  onClose
+  onClose,
+  onDownload
 }) => {
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          prevSlide();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          nextSlide();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          onClose();
+          break;
+        case '+':
+        case '=':
+          e.preventDefault();
+          zoomIn();
+          break;
+        case '-':
+          e.preventDefault();
+          zoomOut();
+          break;
+        case '0':
+          e.preventDefault();
+          resetZoom();
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const nextSlide = () => {
-    setCurrentSlide((currentSlide + 1) % images.length);
+    const newSlide = (currentSlide + 1) % images.length;
+    console.log('🔍 Next slide:', newSlide);
+    setCurrentSlide(newSlide);
     setZoom(1);
     setPosition({ x: 0, y: 0 });
   };
 
   const prevSlide = () => {
-    setCurrentSlide((currentSlide - 1 + images.length) % images.length);
+    const newSlide = (currentSlide - 1 + images.length) % images.length;
+    console.log('🔍 Previous slide:', newSlide);
+    setCurrentSlide(newSlide);
     setZoom(1);
     setPosition({ x: 0, y: 0 });
   };
@@ -69,13 +111,23 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  if (images.length === 0) return null;
+  if (images.length === 0) {
+    console.log('🔍 ImageCarousel: No images to display');
+    return null;
+  }
 
+  console.log('🔍 ImageCarousel: Rendering with', images.length, 'images, current slide:', currentSlide);
+  
   return (
     <div className="fixed inset-0 bg-black/95 z-50 flex flex-col">
       {/* Header */}
       <div className="p-4 flex justify-between items-center">
-        <h2 className="text-xl font-medium text-white">Image Gallery</h2>
+        <div>
+          <h2 className="text-xl font-medium text-white">Image Gallery</h2>
+          <p className="text-sm text-gray-400 mt-1">
+            Use arrow keys to navigate, +/- to zoom, 0 to reset, ESC to close
+          </p>
+        </div>
         <div className="flex items-center gap-4">
           {/* Zoom Controls */}
           <div className="flex items-center gap-2">
@@ -104,12 +156,23 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
               Reset
             </button>
           </div>
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onDownload && (
+              <button 
+                onClick={() => onDownload(images[currentSlide], currentSlide)}
+                className="text-gray-400 hover:text-white"
+                title="Download image"
+              >
+                <Download className="w-6 h-6" />
+              </button>
+            )}
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </div>
       

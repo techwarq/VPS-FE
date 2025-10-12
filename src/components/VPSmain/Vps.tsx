@@ -13,7 +13,7 @@ import { useVPSAPI } from '../hooks/use-vps-api';
 import { LeftSidebar } from '../sidebar/left';
 import { RightSidebar } from '../sidebar/right';
 import { ResultDisplay } from './ResultDisplay';
-// import { ImageCarousel } from './imagecaroussel';
+import { ImageCarousel } from './imagecaroussel';
 import { 
   type StreamingAvatarResult, 
   type StreamingTryOnResult, 
@@ -204,15 +204,30 @@ export const VPSMain: React.FC = () => {
   };
 
   const handleAccessoriesGenerated = (results: unknown) => {
-    console.log('Accessories results generated:', results);
+    console.log('🎯 Accessories results generated (raw):', results);
     
-    // Handle the actual API response format
     if (Array.isArray(results)) {
       const convertedResults: AccessoriesResult[] = [];
       
       results.forEach((item: unknown, itemIndex: number) => {
-        const typedItem = item as { images?: unknown[] };
-        if (typedItem.images && Array.isArray(typedItem.images)) {
+        const typedItem = item as { 
+          id?: string; 
+          url?: string; 
+          item_index?: number; 
+          isLoading?: boolean;
+          images?: unknown[] 
+        };
+        
+        // Check if this is a loading placeholder (has isLoading property)
+        if (typedItem.isLoading !== undefined) {
+          convertedResults.push({
+            id: typedItem.id || `accessories-loading-${itemIndex}-${Date.now()}`,
+            url: typedItem.url || '',
+            item_index: typedItem.item_index || itemIndex,
+            isLoading: typedItem.isLoading
+          });
+        } else if (typedItem.images && Array.isArray(typedItem.images)) {
+          // Handle actual API response format with images array
           typedItem.images.forEach((image: unknown, imageIndex: number) => {
             const typedImage = image as { signedUrl?: string; url?: string };
             convertedResults.push({
@@ -222,27 +237,24 @@ export const VPSMain: React.FC = () => {
               isLoading: false
             });
           });
+        } else {
+          // Fallback for simple format
+          convertedResults.push({
+            id: typedItem.id || `accessories-${itemIndex}-${Date.now()}`,
+            url: typedItem.url || '',
+            item_index: typedItem.item_index || itemIndex,
+            isLoading: false
+          });
         }
       });
       
-      setAccessoriesResults(convertedResults);
-    } else {
-      // Fallback for simple format
-      const convertedResults = (results as unknown[]).map((result: unknown, index: number) => {
-        const typedResult = result as { id?: string; url?: string; isLoading?: boolean };
-        return {
-          id: typedResult.id || `accessories-${index}-${Date.now()}`,
-          url: typedResult.url || '',
-          item_index: index,
-          isLoading: typedResult.isLoading || false
-        };
-      });
+      console.log('🎯 Accessories results converted:', convertedResults);
       setAccessoriesResults(convertedResults);
     }
   };
 
   const handleAccessoriesProgress = (result: unknown) => {
-    console.log('Accessories progress:', result);
+    console.log('🎯 Accessories progress:', result);
     
     // Handle streaming results - add to accessories results in real-time
     const typedResult = result as { images?: unknown[]; item_index?: number };
@@ -257,7 +269,12 @@ export const VPSMain: React.FC = () => {
         };
       });
       
-      setAccessoriesResults(prev => [...prev, ...newResults]);
+      console.log('🎯 Adding streaming accessories results:', newResults);
+      setAccessoriesResults(prev => {
+        const updated = [...prev, ...newResults];
+        console.log('🎯 Updated accessories results:', updated);
+        return updated;
+      });
     }
   };
 
@@ -450,11 +467,13 @@ export const VPSMain: React.FC = () => {
 
   // Carousel handlers
   const openCarousel = (images: string[]) => {
+    console.log('🔍 Opening carousel with images:', images);
     setCarouselImages(images);
     setCurrentCarouselSlide(0);
     setCarouselZoom(1);
     setCarouselPosition({ x: 0, y: 0 });
     setCarouselOpen(true);
+    console.log('🔍 Carousel state set to open');
   };
 
   const closeCarousel = () => {
@@ -463,11 +482,49 @@ export const VPSMain: React.FC = () => {
     setCarouselPosition({ x: 0, y: 0 });
   };
 
-  const handleDownload = (imageUrl: string, index: number) => {
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `result_${index}_${Date.now()}.jpg`;
-    link.click();
+  const handleDownload = async (imageUrl: string, index: number) => {
+    try {
+      console.log('🔍 Downloading image:', imageUrl);
+      
+      // For signed URLs, we need to fetch the image first to avoid CORS issues
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `result_${index}_${Date.now()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('✅ Image downloaded successfully');
+    } catch (error) {
+      console.error('❌ Download failed:', error);
+      
+      // Fallback: try direct download
+      try {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = `result_${index}_${Date.now()}.jpg`;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        console.log('✅ Fallback download attempted');
+      } catch (fallbackError) {
+        console.error('❌ Fallback download also failed:', fallbackError);
+        alert('Download failed. Please try right-clicking on the image and selecting "Save image as..."');
+      }
+    }
   };
 
   const removeAsset = (id: string) => {
@@ -486,31 +543,36 @@ export const VPSMain: React.FC = () => {
 
   // Helper function to convert streaming results to display format
   const getDisplayImages = (): string[] => {
+    let images: string[] = [];
+    
     switch (activeTab) {
       case 'avatar':
-        return generatedAvatars
+        images = generatedAvatars
           .filter(avatar => avatar.url)
           .map(avatar => avatar.url);
+        break;
       case 'tryon':
-        return tryonResults
+        images = tryonResults
           .filter(result => result.url)
           .map(result => result.url);
+        break;
       case 'pose':
-        return poseResults
+        images = poseResults
           .filter(result => result.url)
           .map(result => result.url);
+        break;
       case 'accessories':
-        // For accessories, we'll return empty array for now
-        // You can extend this when you add accessories results to the store
-        return [];
+        images = accessoriesResults
+          .filter(result => result.url)
+          .map(result => result.url);
+        break;
       default:
-        return [];
+        images = [];
     }
+    
+    console.log(`🔍 getDisplayImages for ${activeTab}:`, images);
+    return images;
   };
-
-    function setCurrentSlide(): void {
-        throw new Error('Function not implemented.');
-    }
 
   return (
     <div className="h-full flex bg-gray-900">
@@ -634,18 +696,19 @@ export const VPSMain: React.FC = () => {
       )}
       
       {/* Image Carousel */}
-      {/* {carouselOpen && (
+      {carouselOpen && (
         <ImageCarousel
           images={carouselImages}
           currentSlide={currentCarouselSlide}
-          setCurrentSlide={setCurrentSlide}
+          setCurrentSlide={setCurrentCarouselSlide}
           zoom={carouselZoom}
           setZoom={setCarouselZoom}
           position={carouselPosition}
           setPosition={setCarouselPosition}
           onClose={closeCarousel}
+          onDownload={handleDownload}
         />
-      )} */}
+      )}
     </div>
   );
 };
