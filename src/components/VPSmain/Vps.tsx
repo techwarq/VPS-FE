@@ -87,24 +87,64 @@ export const VPSMain: React.FC = () => {
 
   const convertTryOnResults = (streamingResults: StreamingTryOnResult[]): TryOnResult[] => {
     return streamingResults
-      .filter(result => result.images && result.images.length > 0)
-      .map((result, index) => ({
-        id: `tryon-${result.item_index || index}-${Date.now()}`,
-        url: createImageUrl(result.images![0]),
-        item_index: result.item_index,
+      .map((result, index) => {
+        // Handle loading placeholders (empty images array)
+        if (!result.images || result.images.length === 0) {
+          return {
+            id: `tryon-loading-${result.item_index || index}-${Date.now()}`,
+            url: '',
+            item_index: result.item_index,
+            isLoading: true
+          };
+        }
         
-      }));
+        // Handle actual results with images
+        const firstImage = result.images[0];
+        let imageUrl = '';
+        
+        // Check if the image is already a URL string
+        if (typeof firstImage === 'string') {
+          imageUrl = firstImage;
+        } else if (firstImage && typeof firstImage === 'object') {
+          // Handle ModelImage format - check for signedUrl first
+          if ('signedUrl' in firstImage && firstImage.signedUrl) {
+            imageUrl = firstImage.signedUrl;
+          } else {
+            // Fallback to createImageUrl for other formats
+            imageUrl = createImageUrl(firstImage);
+          }
+        }
+        
+        return {
+          id: `tryon-${result.item_index || index}-${Date.now()}`,
+          url: imageUrl,
+          item_index: result.item_index,
+          isLoading: false
+        };
+      });
   };
 
   const convertPoseResults = (streamingResults: StreamingPoseTransferResult[]): PoseResult[] => {
     return streamingResults
-      .filter(result => result.images && result.images.length > 0)
-      .map((result, index) => ({
-        id: `pose-${result.item_index || index}-${Date.now()}`,
-        url: createImageUrl(result.images![0]),
-        item_index: result.item_index,
-       
-      }));
+      .map((result, index) => {
+        // Handle loading placeholders (empty images array)
+        if (!result.images || result.images.length === 0) {
+          return {
+            id: `pose-loading-${result.item_index || index}-${Date.now()}`,
+            url: '',
+            item_index: result.item_index,
+            isLoading: true
+          };
+        }
+        
+        // Handle actual results with images
+        return {
+          id: `pose-${result.item_index || index}-${Date.now()}`,
+          url: createImageUrl(result.images[0]),
+          item_index: result.item_index,
+          isLoading: false
+        };
+      });
   };
 
   // New API callback handlers
@@ -127,10 +167,16 @@ export const VPSMain: React.FC = () => {
   };
 
   const handleTryOnGenerated = (results: StreamingTryOnResult[]) => {
-    console.log('Try-on results generated (raw):', results);
+    console.log('🎯 Try-on results generated (raw):', results);
     const convertedResults = convertTryOnResults(results);
-    console.log('Try-on results converted:', convertedResults);
+    console.log('🎯 Try-on results converted:', convertedResults);
+    console.log('🎯 Setting tryonResults to:', convertedResults);
     setTryonResults(convertedResults);
+    
+    // Also log the current state after setting
+    setTimeout(() => {
+      console.log('🎯 tryonResults state after setting:', tryonResults);
+    }, 100);
   };
 
   const handlePoseGenerated = (results: StreamingPoseTransferResult[]) => {

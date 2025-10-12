@@ -242,6 +242,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
       case 'tryon':
         // Show placeholders if generation has started
         const hasTryOnGeneration = tryonResults.length > 0;
+        console.log('🔍 TryOn Response - tryonResults:', tryonResults);
+        console.log('🔍 TryOn Response - hasTryOnGeneration:', hasTryOnGeneration);
         return renderImageGrid(
           tryonResults,
           'url',

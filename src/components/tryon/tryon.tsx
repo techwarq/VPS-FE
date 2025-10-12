@@ -99,12 +99,21 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
         const { results } = response.data;
         // Convert final results to the expected format
         const finalResults: StreamingTryOnResult[] = results.map((result: unknown, index: number) => {
-          const typedResult = result as { item_index?: number; step?: number; total_steps?: number; images?: string[]; error?: string };
+          const typedResult = result as { 
+            item_index?: number; 
+            step?: number; 
+            total_steps?: number; 
+            images?: Array<{ signedUrl?: string; fileId?: string; filename?: string; size?: number; contentType?: string }>; 
+            error?: string 
+          };
+          
+          console.log('🔍 Processing tryon result:', typedResult);
+          
           return {
             item_index: typedResult.item_index || index,
             step: typedResult.step || 1,
             total_steps: typedResult.total_steps || 1,
-            images: typedResult.images?.map(url => ({ signedUrl: url })) || [],
+            images: typedResult.images || [],
             error: typedResult.error
           };
         });
