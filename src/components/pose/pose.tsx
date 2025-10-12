@@ -43,6 +43,17 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
     setError(null);
     setGenerationProgress([]);
 
+    // Add loading placeholders for each avatar
+    if (onPoseGenerated) {
+      const loadingPlaceholders: StreamingPoseTransferResult[] = poseForm.items.map((_, index) => ({
+        item_index: index,
+        mode: 'pose_both' as const,
+        images: [],
+        error: undefined
+      }));
+      onPoseGenerated(loadingPlaceholders);
+    }
+
     try {
       console.log('🔍 Pose form items before processing:', poseForm.items);
       console.log('🔍 Uploaded pose references:', uploadedPoseReferences);
@@ -95,7 +106,26 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
 
       if (response.success && response.data) {
         const { results } = response.data;
-        onPoseGenerated?.(results);
+        // Convert final results to the expected format
+        const finalResults: StreamingPoseTransferResult[] = results.map((result: unknown, index: number) => {
+          const typedResult = result as { 
+            item_index?: number; 
+            step?: number; 
+            total_steps?: number; 
+            images?: Array<{ signedUrl?: string; fileId?: string; filename?: string; size?: number; contentType?: string }>; 
+            error?: string 
+          };
+          
+          console.log('🔍 Processing pose result:', typedResult);
+          
+          return {
+            item_index: typedResult.item_index || index,
+            mode: 'pose_both' as const,
+            images: typedResult.images || [],
+            error: typedResult.error
+          };
+        });
+        onPoseGenerated?.(finalResults);
         console.log(`Pose transfer completed: ${response.data.metadata.completedItems}/${response.data.metadata.totalItems} items`);
       } else {
         setError(response.error || 'Failed to generate pose transfers');

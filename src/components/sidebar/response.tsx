@@ -257,6 +257,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
       case 'pose':
         // Show placeholders if generation has started
         const hasPoseGeneration = poseResults.length > 0;
+        console.log('🔍 Pose Response - poseResults:', poseResults);
+        console.log('🔍 Pose Response - hasPoseGeneration:', hasPoseGeneration);
         return renderImageGrid(
           poseResults,
           'url',
@@ -270,6 +272,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
       case 'accessories':
         // Show placeholders if generation has started
         const hasAccessoriesGeneration = accessoriesResults.length > 0;
+        console.log('🔍 Accessories Response - accessoriesResults:', accessoriesResults);
+        console.log('🔍 Accessories Response - hasAccessoriesGeneration:', hasAccessoriesGeneration);
         return renderImageGrid(
           accessoriesResults,
           'url',

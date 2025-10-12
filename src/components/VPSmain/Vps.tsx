@@ -138,9 +138,25 @@ export const VPSMain: React.FC = () => {
         }
         
         // Handle actual results with images
+        const firstImage = result.images[0];
+        let imageUrl = '';
+        
+        // Check if the image is already a URL string
+        if (typeof firstImage === 'string') {
+          imageUrl = firstImage;
+        } else if (firstImage && typeof firstImage === 'object') {
+          // Handle ModelImage format - check for signedUrl first
+          if ('signedUrl' in firstImage && firstImage.signedUrl) {
+            imageUrl = firstImage.signedUrl;
+          } else {
+            // Fallback to createImageUrl for other formats
+            imageUrl = createImageUrl(firstImage);
+          }
+        }
+        
         return {
           id: `pose-${result.item_index || index}-${Date.now()}`,
-          url: createImageUrl(result.images[0]),
+          url: imageUrl,
           item_index: result.item_index,
           isLoading: false
         };
@@ -180,8 +196,10 @@ export const VPSMain: React.FC = () => {
   };
 
   const handlePoseGenerated = (results: StreamingPoseTransferResult[]) => {
-    console.log('Pose results generated:', results);
+    console.log('🎯 Pose results generated (raw):', results);
     const convertedResults = convertPoseResults(results);
+    console.log('🎯 Pose results converted:', convertedResults);
+    console.log('🎯 Setting poseResults to:', convertedResults);
     setPoseResults(convertedResults);
   };
 
