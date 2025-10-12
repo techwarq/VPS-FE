@@ -368,6 +368,27 @@ export const VPSMain: React.FC = () => {
         const response = await uploadFile(file);
         
         // Handle the response from our upload API
+        console.log('🔍 Upload response:', response);
+        
+        // Check if response has the expected structure
+        if (response && response.success && response.file) {
+          const fileData = response.file;
+          const asset: UploadedAsset = {
+            id: `asset-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            url: fileData.signedUrl || fileData.url,
+            name: fileData.filename || file.name
+          };
+          
+          // Add optional properties if they exist
+          if (fileData.fileId) asset.fileId = fileData.fileId;
+          if (fileData.size) asset.size = fileData.size;
+          if (fileData.contentType) asset.contentType = fileData.contentType;
+          
+          console.log('🔍 Created asset:', asset);
+          return asset;
+        }
+        
+        // Fallback for old response format
         if (response && response.data && response.data.url) {
           const asset: UploadedAsset = {
             id: `asset-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -389,7 +410,12 @@ export const VPSMain: React.FC = () => {
       const results = await Promise.all(uploadPromises);
       const validResults = results.filter((result): result is UploadedAsset => result !== null);
       
-      setUploadedAssets(prev => [...prev, ...validResults]);
+      console.log('🔍 Upload results:', validResults);
+      setUploadedAssets(prev => {
+        const updated = [...prev, ...validResults];
+        console.log('🔍 Updated uploaded assets:', updated);
+        return updated;
+      });
     } catch (error) {
       console.error('Error uploading files:', error);
     } finally {
@@ -644,6 +670,7 @@ export const VPSMain: React.FC = () => {
         setUploadedAssets={setUploadedAssets}
         isUploading={isUploading}
         removeAsset={removeAsset}
+        handleDownload={handleDownload}
         
         // Generated data with new types
         generatedAvatars={generatedAvatars}

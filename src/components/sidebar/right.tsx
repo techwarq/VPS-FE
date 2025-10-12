@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Upload, Loader2 } from 'lucide-react';
+import { X, Upload, Loader2, Download } from 'lucide-react';
 import { AvatarParameters } from '../avatar/avatar';
 import { TryOnParameters } from '../tryon/tryon';
 import { PoseParameters } from '../pose/pose';
@@ -34,6 +34,7 @@ interface RightSidebarProps {
   setUploadedAssets: React.Dispatch<React.SetStateAction<Asset[]>>;
   isUploading: boolean;
   removeAsset: (id: string) => void;
+  handleDownload?: (imageUrl: string, index: number) => void;
   
   
   // FIX: Change generatedAvatars type to match the state from the store
@@ -87,6 +88,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   setUploadedAssets,
   isUploading,
   removeAsset,
+  handleDownload,
   generatedAvatars,
   tryonResults,
   poseResults,
@@ -329,19 +331,31 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           <div className="p-4 border-t border-gray-700">
             <h3 className="text-sm font-medium text-white mb-3">Uploaded Assets ({uploadedAssets.length})</h3>
             <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
-              {uploadedAssets.map((asset) => (
+              {uploadedAssets.map((asset, index) => (
                 <div key={asset.id} className="relative group">
                   <img
                     src={asset.url}
                     alt={asset.name}
                     className="w-full h-16 object-cover rounded border border-gray-600"
                   />
-                  <button
-                    onClick={() => removeAsset(asset.id)}
-                    className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+                  <div className="absolute top-0 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {handleDownload && (
+                      <button
+                        onClick={() => handleDownload(asset.url, index)}
+                        className="w-5 h-5 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center text-white"
+                        title="Download"
+                      >
+                        <Download className="w-3 h-3" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => removeAsset(asset.id)}
+                      className="w-5 h-5 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white"
+                      title="Remove"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
                   <p className="text-xs text-gray-400 truncate mt-1" title={asset.name}>
                     {asset.name}
                   </p>

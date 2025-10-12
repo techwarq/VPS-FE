@@ -11,6 +11,7 @@ interface AssetsContentProps {
   dragActive: boolean;
   handleDrag: (e: React.DragEvent) => void;
   handleDrop: (e: React.DragEvent) => void;
+  handleDownload?: (imageUrl: string, index: number) => void;
 }
 
 export const AssetsContent: React.FC<AssetsContentProps> = ({
@@ -20,7 +21,8 @@ export const AssetsContent: React.FC<AssetsContentProps> = ({
   handleFileUpload,
   dragActive,
   handleDrag,
-  handleDrop
+  handleDrop,
+  handleDownload
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,19 +72,31 @@ export const AssetsContent: React.FC<AssetsContentProps> = ({
         <div>
           <h4 className="text-md font-medium text-white mb-3">Uploaded Assets ({uploadedAssets.length})</h4>
           <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-            {uploadedAssets.map((asset) => (
+            {uploadedAssets.map((asset, index) => (
               <div key={asset.id} className="relative group">
                 <img
                   src={asset.url}
                   alt={asset.name}
                   className="w-full h-24 object-cover rounded-lg border border-gray-600"
                 />
-                <button
-                  onClick={() => removeAsset(asset.id)}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-3 h-3" />
-                </button>
+                <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {handleDownload && (
+                    <button
+                      onClick={() => handleDownload(asset.url, index)}
+                      className="w-6 h-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center"
+                      title="Download"
+                    >
+                      <Download className="w-3 h-3" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => removeAsset(asset.id)}
+                    className="w-6 h-6 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center"
+                    title="Remove"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
                 <p className="text-xs text-gray-400 truncate mt-1">{asset.name}</p>
               </div>
             ))}
