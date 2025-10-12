@@ -159,10 +159,16 @@ export const useVPSStore = create<VPSStore>((set) => ({
       uploadedGarments: state.uploadedGarments.filter((garment) => garment !== url),
     })),
   
-  addUploadedPoseReference: (url) =>
-    set((state) => ({
-      uploadedPoseReferences: [...state.uploadedPoseReferences, url],
-    })),
+  addUploadedPoseReference: (url) => {
+    console.log('🔍 Store: Adding pose reference URL:', url);
+    set((state) => {
+      const newState = {
+        uploadedPoseReferences: [...state.uploadedPoseReferences, url],
+      };
+      console.log('🔍 Store: New uploadedPoseReferences state:', newState.uploadedPoseReferences);
+      return newState;
+    });
+  },
   
   removeUploadedPoseReference: (url) =>
     set((state) => ({

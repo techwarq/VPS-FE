@@ -31,6 +31,9 @@ export const PoseParameters: React.FC<PoseParametersProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [generationProgress, setGenerationProgress] = useState<StreamingPoseTransferResult[]>([]);
 
+  console.log("🔍 PoseParameters - uploadedPoseReferences:", uploadedPoseReferences);
+  console.log("🔍 PoseParameters - uploadedAssets:", uploadedAssets);
+
   // Removed: Local addUploadedPoseReference function. Now using the prop directly.
 
   const handlePoseGenerate = async () => {

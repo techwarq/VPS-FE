@@ -93,7 +93,7 @@ export const VPSMain: React.FC = () => {
           return {
             id: `tryon-loading-${result.item_index || index}-${Date.now()}`,
             url: '',
-            item_index: result.item_index,
+        item_index: result.item_index,
             isLoading: true
           };
         }
@@ -155,9 +155,9 @@ export const VPSMain: React.FC = () => {
         }
         
         return {
-          id: `pose-${result.item_index || index}-${Date.now()}`,
+        id: `pose-${result.item_index || index}-${Date.now()}`,
           url: imageUrl,
-          item_index: result.item_index,
+        item_index: result.item_index,
           isLoading: false
         };
       });
@@ -409,11 +409,16 @@ export const VPSMain: React.FC = () => {
     
     try {
       const file = files[0];
+      console.log('🔍 Uploading pose reference file:', file.name);
       const response = await uploadPoseReference(file);
+      console.log('🔍 Pose reference upload response:', response);
       
       if (response.success && response.url) {
+        console.log('🔍 Adding pose reference URL to state:', response.url);
         // Store the signed URL returned from the API, not a blob URL
         addUploadedPoseReference(response.url);
+      } else {
+        console.error('❌ Pose reference upload failed - no URL in response:', response);
       }
     } catch (err) {
       console.error('Pose reference upload failed:', err);
