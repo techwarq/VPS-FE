@@ -6,7 +6,7 @@ interface ResultDisplayProps {
   generatedAvatars: Array<{ id: string; url: string; angle?: string; isLoading?: boolean }>;
   tryonResults: Array<{ id: string; url: string; item_index?: number }>;
   poseResults: Array<{ id: string; url: string; item_index?: number }>;
-  accessoriesResults: Array<{ id: string; url: string; item_index?: number }>;
+  accessoriesResults: Array<{ id: string; url: string; item_index?: number; isLoading?: boolean }>;
   openCarousel: (images: string[]) => void;
   handleDownload: (imageUrl: string, index: number) => void;
 }

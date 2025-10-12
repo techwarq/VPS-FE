@@ -78,6 +78,17 @@ export const AccessoriesParameters: React.FC<AccessoriesParametersProps> = ({
     setIsGenerating(true);
     setGenerationProgress([]);
     
+    // Add loading placeholders for each avatar
+    if (onAccessoriesGenerated) {
+      const loadingPlaceholders = generatedAvatars.map((_, index) => ({
+        id: `loading-accessories-${index}-${Date.now()}`,
+        url: '',
+        item_index: index,
+        isLoading: true
+      }));
+      onAccessoriesGenerated(loadingPlaceholders);
+    }
+    
     try {
       console.log('🔍 Available avatars:', generatedAvatars);
       console.log('🔍 Accessories:', accessories);

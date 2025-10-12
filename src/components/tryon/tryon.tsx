@@ -45,6 +45,18 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
     setError(null);
     setGenerationProgress([]);
 
+    // Add loading placeholder to show in results area
+    if (onTryOnGenerated) {
+      const loadingPlaceholders: StreamingTryOnResult[] = tryonForm.items.map((_, index) => ({
+        item_index: index,
+        step: 0,
+        total_steps: 1,
+        images: [],
+        error: undefined
+      }));
+      onTryOnGenerated(loadingPlaceholders);
+    }
+
     try {
       // Convert form data to API format - use URLs directly instead of base64
       const tryOnItems = tryonForm.items.map((item: { image: string; garment: string; prompt?: string; background_prompt?: string; reference_images?: string[]; style?: string }) => {
@@ -75,7 +87,18 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
       
       if (response.success && response.data) {
         const { results } = response.data;
-        onTryOnGenerated?.(results);
+        // Convert final results to the expected format
+        const finalResults: StreamingTryOnResult[] = results.map((result: unknown, index: number) => {
+          const typedResult = result as { item_index?: number; step?: number; total_steps?: number; images?: string[]; error?: string };
+          return {
+            item_index: typedResult.item_index || index,
+            step: typedResult.step || 1,
+            total_steps: typedResult.total_steps || 1,
+            images: typedResult.images?.map(url => ({ data: url })) || [],
+            error: typedResult.error
+          };
+        });
+        onTryOnGenerated?.(finalResults);
         console.log(`Try-on completed: ${response.data.metadata.completedItems}/${response.data.metadata.totalItems} items`);
       } else {
         console.error('API failed for Try-On:', response.error);
@@ -365,22 +388,27 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
       </div>
 
       {/* Generation Progress */}
-      {isLoading && generationProgress.length > 0 && (
+      {isLoading && (
         <div className="p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
           <p className="text-sm text-blue-400 mb-2">
-            Processing try-on... ({generationProgress.filter(r => !r.error).length} steps completed)
+            {generationProgress.length > 0 
+              ? `Processing try-on... (${generationProgress.filter(r => !r.error).length} steps completed)`
+              : 'Starting try-on generation...'
+            }
           </p>
-          <div className="space-y-1 max-h-20 overflow-y-auto">
-            {generationProgress.map((result, index) => (
-              <div key={index} className="text-xs text-gray-400">
-                {result.error ? (
-                  <span className="text-red-400">❌ Item {result.item_index + 1}, Step {result.step}: {result.error}</span>
-                ) : (
-                  <span className="text-green-400">✅ Item {result.item_index + 1}, Step {result.step}/{result.total_steps}: Complete</span>
-                )}
-              </div>
-            ))}
-          </div>
+          {generationProgress.length > 0 && (
+            <div className="space-y-1 max-h-20 overflow-y-auto">
+              {generationProgress.map((result, index) => (
+                <div key={index} className="text-xs text-gray-400">
+                  {result.error ? (
+                    <span className="text-red-400">❌ Item {result.item_index + 1}, Step {result.step}: {result.error}</span>
+                  ) : (
+                    <span className="text-green-400">✅ Item {result.item_index + 1}, Step {result.step}/{result.total_steps}: Complete</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
