@@ -32,6 +32,8 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
   const [generationProgress, setGenerationProgress] = useState<StreamingTryOnResult[]>([]);
 
   console.log("TryOnParameters - uploadedGarments:", uploadedGarments);
+  console.log("TryOnParameters - generatedAvatars:", generatedAvatars);
+  console.log("TryOnParameters - tryonForm.items:", tryonForm.items);
 
   // REMOVED: Local addUploadedGarment function. Now using the prop directly.
 
@@ -60,6 +62,12 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
     try {
       // Convert form data to API format - use URLs directly instead of base64
       const tryOnItems = tryonForm.items.map((item: { image: string; garment: string; prompt?: string; background_prompt?: string; reference_images?: string[]; style?: string }) => {
+        console.log('🔍 TryOn Item:', {
+          avatar_image: item.image,
+          garment_images: uploadedGarments,
+          reference_model_images: item.reference_images
+        });
+        
         return {
           avatar_image: item.image, // Use the signed URL directly
           garment_images: uploadedGarments, // Use the signed URLs directly
@@ -74,6 +82,8 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
         style: tryonForm.style,
         negative_prompt: tryonForm.negative_prompt
       };
+
+      console.log('🚀 TryOn API Request:', JSON.stringify(request, null, 2));
 
       const response = await apiService.tryOn(
         request,
@@ -94,7 +104,7 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
             item_index: typedResult.item_index || index,
             step: typedResult.step || 1,
             total_steps: typedResult.total_steps || 1,
-            images: typedResult.images?.map(url => ({ data: url })) || [],
+            images: typedResult.images?.map(url => ({ signedUrl: url })) || [],
             error: typedResult.error
           };
         });
@@ -242,6 +252,13 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
                     src={avatar.url}
                     alt={`Avatar ${index}`}
                     className="w-full h-32 object-cover"
+                    onError={(e) => {
+                      console.error('❌ Avatar image failed to load:', avatar.url);
+                      e.currentTarget.style.display = 'none';
+                    }}
+                    onLoad={() => {
+                      console.log('✅ Avatar image loaded successfully:', avatar.url);
+                    }}
                   />
                   {isSelected && (
                     <div className="absolute top-2 right-2 bg-purple-600 rounded-full w-5 h-5 flex items-center justify-center">
@@ -275,6 +292,13 @@ export const TryOnParameters: React.FC<TryOnParametersProps> = ({
                     src={item.image}
                     alt={`Selected avatar ${index + 1}`}
                     className="w-12 h-12 object-cover rounded border border-gray-600"
+                    onError={(e) => {
+                      console.error('❌ Selected avatar image failed to load:', item.image);
+                      e.currentTarget.style.display = 'none';
+                    }}
+                    onLoad={() => {
+                      console.log('✅ Selected avatar image loaded successfully:', item.image);
+                    }}
                   />
                   <div className="flex-1">
                     <div className="mb-2">

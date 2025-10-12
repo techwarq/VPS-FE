@@ -4,8 +4,9 @@ import { User, Shirt, Users, Maximize2, Download, Loader2 } from 'lucide-react';
 interface ResultDisplayProps {
   activeTab: 'avatar' | 'tryon' | 'pose' | 'accessories';
   generatedAvatars: Array<{ id: string; url: string; angle?: string; isLoading?: boolean }>;
-  tryonResults: Array<{ id: string; url: string; item_index?: number }>;
-  poseResults: Array<{ id: string; url: string; item_index?: number }>;
+  tryonResults: Array<{ id: string; url: string; item_index?: number; isLoading?: boolean }>;
+  poseResults: Array<{ id: string; url: string; item_index?: number; isLoading?: boolean }>;
+  accessoriesResults: Array<{ id: string; url: string; item_index?: number; isLoading?: boolean }>;
   openCarousel: (images: string[]) => void;
   handleDownload: (imageUrl: string, index: number) => void;
 }
@@ -15,6 +16,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
   generatedAvatars,
   tryonResults,
   poseResults,
+  accessoriesResults,
   openCarousel,
   handleDownload
 }) => {
@@ -36,11 +38,71 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
           id: `placeholder-${angle}`,
           angle: angle,
           isLoading: true,
-          url: null
+          url: ''
         });
       }
     }
     
+    return placeholders;
+  };
+
+  // Create loading placeholders for tryon generation
+  const createTryOnPlaceholders = () => {
+    const placeholders = [];
+    for (let i = 0; i < 2; i++) { // Assuming 2 tryon items
+      const existing = tryonResults.find(result => result.item_index === i);
+      
+      if (existing) {
+        placeholders.push(existing);
+      } else {
+        placeholders.push({
+          id: `tryon-placeholder-${i}`,
+          item_index: i,
+          isLoading: true,
+          url: ''
+        });
+      }
+    }
+    return placeholders;
+  };
+
+  // Create loading placeholders for pose generation
+  const createPosePlaceholders = () => {
+    const placeholders = [];
+    for (let i = 0; i < 2; i++) { // Assuming 2 pose items
+      const existing = poseResults.find(result => result.item_index === i);
+      
+      if (existing) {
+        placeholders.push(existing);
+      } else {
+        placeholders.push({
+          id: `pose-placeholder-${i}`,
+          item_index: i,
+          isLoading: true,
+          url: ''
+        });
+      }
+    }
+    return placeholders;
+  };
+
+  // Create loading placeholders for accessories generation
+  const createAccessoriesPlaceholders = () => {
+    const placeholders = [];
+    for (let i = 0; i < 5; i++) { // Assuming 5 accessories items (one per avatar)
+      const existing = accessoriesResults.find(result => result.item_index === i);
+      
+      if (existing) {
+        placeholders.push(existing);
+      } else {
+        placeholders.push({
+          id: `accessories-placeholder-${i}`,
+          item_index: i,
+          isLoading: true,
+          url: ''
+        });
+      }
+    }
     return placeholders;
   };
 
@@ -53,10 +115,24 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
     emptyDescription: string,
     showPlaceholders: boolean = false
   ) => {
-    // For avatars, show placeholders during generation
-    const displayItems = showPlaceholders && activeTab === 'avatar' 
-      ? createAvatarPlaceholders() 
-      : items;
+    // Show placeholders during generation for all types
+    let displayItems = items;
+    if (showPlaceholders) {
+      switch (activeTab) {
+        case 'avatar':
+          displayItems = createAvatarPlaceholders();
+          break;
+        case 'tryon':
+          displayItems = createTryOnPlaceholders();
+          break;
+        case 'pose':
+          displayItems = createPosePlaceholders();
+          break;
+        case 'accessories':
+          displayItems = createAccessoriesPlaceholders();
+          break;
+      }
+    }
 
     // Show empty state only if no items and no generation in progress
     if (!Array.isArray(displayItems) || displayItems.length === 0) {
@@ -75,9 +151,9 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-medium text-white">
             {labelPrefix}
-            {showPlaceholders && activeTab === 'avatar' && (
+            {showPlaceholders && (
               <span className="text-sm text-gray-400 ml-2">
-                ({displayItems.filter(item => !item.isLoading).length}/5 generated)
+                ({displayItems.filter(item => !item.isLoading).length}/{displayItems.length} generated)
               </span>
             )}
           </h3>
@@ -164,33 +240,42 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         );
       
       case 'tryon':
+        // Show placeholders if generation has started
+        const hasTryOnGeneration = tryonResults.length > 0;
         return renderImageGrid(
           tryonResults,
-          'url', // Updated to use 'url' instead of 'image_url'
+          'url',
           'Try-On Results',
           Shirt,
           'No Try-On Results Yet',
-          'Configure parameters in the right sidebar and click Generate to try on garments'
+          'Configure parameters in the right sidebar and click Generate to try on garments',
+          hasTryOnGeneration
         );
       
       case 'pose':
+        // Show placeholders if generation has started
+        const hasPoseGeneration = poseResults.length > 0;
         return renderImageGrid(
           poseResults,
-          'url', // Updated to use 'url' instead of 'image_url'
+          'url',
           'Pose Transfer Results',
           Users,
           'No Pose Results Yet',
-          'Configure parameters in the right sidebar and click Generate to transfer poses'
+          'Configure parameters in the right sidebar and click Generate to transfer poses',
+          hasPoseGeneration
         );
       
       case 'accessories':
+        // Show placeholders if generation has started
+        const hasAccessoriesGeneration = accessoriesResults.length > 0;
         return renderImageGrid(
-          [], // Empty array for now - you can add accessories results later
+          accessoriesResults,
           'url',
           'Accessories Results',
-          Users, // You can import Sparkles icon if needed
+          Users,
           'No Accessories Results Yet',
-          'Configure parameters in the right sidebar and click Generate to add accessories'
+          'Configure parameters in the right sidebar and click Generate to add accessories',
+          hasAccessoriesGeneration
         );
       
       default:
