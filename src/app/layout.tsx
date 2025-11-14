@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Bangers, Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,8 @@ export const metadata: Metadata = {
   description: "A modern Next.js application with TypeScript and Tailwind CSS",
 };
 
+const GOOGLE_CLIENT_ID = '830525870730-26k9e3g8clnkhrh6oi9en1rg55i69d4h.apps.googleusercontent.com';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -40,13 +43,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${inter.variable} antialiased`}
       >
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          <div className="min-h-screen flex flex-col">
+          
+            <main className="flex-1">
+              {children}
+            </main>
+         
+          </div>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

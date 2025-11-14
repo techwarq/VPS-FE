@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { AuthService } from '@/services/auth.service';
+import { apiService, AvatarGenerationRequest, StreamingAvatarResult } from '@/services/api'; // Import apiService and types
+import { AvatarFormData, ModelCharacteristics } from '@/components/chatui/components/AvatarFormPopup'; // Import AvatarFormData and ModelCharacteristics
 
 // API base URL configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE_URL = 'http://localhost:4000';
 
 // Mock API functions - replace with actual API calls
 export const useVPSAPI = () => {
@@ -228,6 +231,95 @@ export const useVPSAPI = () => {
     }
   };
 
+  const chatPhotoshoot = async (
+    userQuery: string,
+    queryId?: number,
+    onProgress?: (data: Record<string, unknown>) => void
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const requestBody = {
+        userQuery,
+        query_id: queryId || Date.now(),
+        createdAt: new Date().toISOString()
+      };
+
+      const response = await AuthService.authenticatedFetch(
+        `${API_BASE_URL}/api/photoshoot/chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to send chat message' }));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // Call progress callback if provided
+      if (onProgress && result) {
+        onProgress(result);
+      }
+
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send chat message';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateAvatarAPI = async (
+    formData: AvatarFormData, // Changed to new AvatarFormData interface
+    onProgress?: (result: StreamingAvatarResult) => void
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const requestBody: AvatarGenerationRequest = {
+        models: formData.models.map((model: ModelCharacteristics) => ({
+          subject: model.description,
+          gender: model.gender === '' ? undefined : model.gender,
+          hairstyle: model.hairstyle === '' ? undefined : model.hairstyle,
+          ethnicity: model.ethnicity === '' ? undefined : model.ethnicity,
+          age: model.age === '' ? undefined : parseInt(model.age.split('-')[0]),
+          clothing: model.bodyType === '' ? undefined : model.bodyType,
+        })),
+        style: formData.style === '' ? undefined : formData.style,
+        background: formData.background === '' ? undefined : formData.background,
+        aspect_ratio: formData.aspect_ratio === '' ? undefined : formData.aspect_ratio,
+        framing: formData.framing === '' ? undefined : formData.framing,
+      };
+
+      console.log('Sending Avatar Generation Request:', requestBody); // Debug log
+
+      const response = await apiService.generateAvatar(requestBody, onProgress);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to generate avatar');
+      }
+      
+      return response.data; // Return the aggregated data from apiService
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate avatar';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     generateAvatar,
     tryOn,
@@ -235,6 +327,8 @@ export const useVPSAPI = () => {
     uploadGarments,
     uploadPoseReference,
     uploadFile,
+    chatPhotoshoot,
+    generateAvatarAPI,
     isLoading,
     error
   };

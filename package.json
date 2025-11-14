@@ -12,6 +12,8 @@
     "clean": "rm -rf .next out"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.12.2",
+    "framer-motion": "^12.23.24",
     "lucide-react": "^0.544.0",
     "next": "15.5.2",
     "react": "19.1.0",

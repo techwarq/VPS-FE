@@ -1,0 +1,359 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Plus, Mic } from 'lucide-react';
+import Uploader from './uploader';
+import UploadedGrid from './uploaded-grid';
+
+interface UploadedImage {
+  id: number;
+  url: string;
+  name: string;
+}
+
+interface AnimatedChatUIProps {
+  onWorkmode?: () => void;
+  onStateChange?: (state: 'initial' | 'active' | 'workmode') => void;
+  onShowAvatarPopup?: () => void;
+  uploadedImages?: UploadedImage[];
+  onRemoveImage?: (id: number) => void;
+  onSendMessage?: (message: string, queryId?: number, onProgress?: (data: Record<string, unknown>) => void) => Promise<any>;
+  isChatLoading?: boolean;
+}
+
+const AnimatedChatUI = ({ 
+  onWorkmode, 
+  onStateChange, 
+  onShowAvatarPopup, 
+  uploadedImages = [], 
+  onRemoveImage,
+  onSendMessage,
+  isChatLoading = false
+}: AnimatedChatUIProps) => {
+  const [chatState, setChatState] = useState('initial'); // 'initial' | 'active' | 'workmode'
+  const [inputValue, setInputValue] = useState('');
+  const [showUploader, setShowUploader] = useState(false);
+  const [gridMaximized, setGridMaximized] = useState(false);
+  const chatHistoryRef = useRef<HTMLDivElement>(null);
+
+  const [history, setHistory] = useState([
+    {
+      id: 1,
+      sender: 'ai',
+      text: "hey 👋 looks like you're testing — what do you want to do?",
+    }
+  ]);
+  const [isSending, setIsSending] = useState(false);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (chatHistoryRef.current) {
+      chatHistoryRef.current.scrollTop = chatHistoryRef.current.scrollHeight;
+    }
+  }, [history, uploadedImages]);
+
+  const handleSubmission = async () => {
+    if (!inputValue.trim() || isSending || isChatLoading) return;
+
+    const userMessageText = inputValue.trim();
+    const newUserMessage = {
+      id: Date.now(),
+      sender: 'user',
+      text: userMessageText,
+    };
+    setHistory(prev => [...prev, newUserMessage]);
+    
+    // Check if message contains "avatar" keyword
+    const messageText = userMessageText.toLowerCase();
+    const containsAvatar = messageText.includes('avatar');
+    
+    setInputValue('');
+    setIsSending(true);
+
+    // First enter: move to active (bottom center, smaller)
+    if (chatState === 'initial') {
+      const newState = 'active';
+      setChatState(newState);
+      if (onStateChange) onStateChange(newState);
+    } 
+    // Second enter: move to workmode (left side with full chat)
+    else if (chatState === 'active') {
+      const newState = 'workmode';
+      setChatState(newState);
+      if (onStateChange) onStateChange(newState);
+      // Notify parent that we're entering workmode
+      if (onWorkmode) {
+        onWorkmode();
+      }
+    }
+
+    // Show avatar popup if "avatar" keyword is detected
+    if (containsAvatar && onShowAvatarPopup) {
+      setTimeout(() => {
+        onShowAvatarPopup();
+      }, 1200);
+    }
+
+    // Call the chat API if onSendMessage is provided
+    if (onSendMessage) {
+      try {
+        const queryId = Date.now();
+        const response = await onSendMessage(userMessageText, queryId, (progressData) => {
+          // Handle streaming progress if needed
+          console.log('Chat progress:', progressData);
+        });
+
+        // Handle API response
+        let aiResponseText = '';
+        if (response && response.message) {
+          aiResponseText = response.message;
+        } else if (response && response.text) {
+          aiResponseText = response.text;
+        } else if (response && typeof response === 'string') {
+          aiResponseText = response;
+        } else {
+          // Fallback response
+          aiResponseText = containsAvatar 
+            ? `Perfect! Let's get started with your avatar.`
+            : `Got it! You asked: "${userMessageText}". I'm ready to proceed with your request.`;
+        }
+
+        const aiResponse = {
+          id: Date.now() + 1,
+          sender: 'ai',
+          text: aiResponseText,
+        };
+        setHistory(prev => [...prev, aiResponse]);
+      } catch (error) {
+        console.error('Chat API error:', error);
+        const errorResponse = {
+          id: Date.now() + 1,
+          sender: 'ai',
+          text: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+        };
+        setHistory(prev => [...prev, errorResponse]);
+      } finally {
+        setIsSending(false);
+      }
+    } else {
+      // Fallback to mock response if API is not available
+      setTimeout(() => {
+        const aiResponse = {
+          id: Date.now() + 1,
+          sender: 'ai',
+          text: containsAvatar 
+            ? `Perfect! Let's get started with your avatar.`
+            : `Got it! You asked: "${userMessageText}". I'm ready to proceed with your request.`,
+        };
+        setHistory(prev => [...prev, aiResponse]);
+        setIsSending(false);
+      }, 1000);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmission();
+    }
+  };
+
+  return (
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Animated background gradients */}
+      <motion.div 
+        className="absolute top-20 left-20 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl"
+        animate={{ 
+          scale: [1, 1.2, 1],
+          opacity: [0.3, 0.5, 0.3]
+        }}
+        transition={{ 
+          duration: 4,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      <motion.div 
+        className="absolute bottom-20 right-20 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"
+        animate={{ 
+          scale: [1.2, 1, 1.2],
+          opacity: [0.2, 0.4, 0.2]
+        }}
+        transition={{ 
+          duration: 5,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1
+        }}
+      />
+
+      {/* Main container */}
+      <motion.div 
+        className="absolute inset-0 flex items-center justify-center p-4 sm:p-8"
+        initial={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingLeft: '2rem',
+          paddingBottom: '0',
+        }}
+        animate={{
+          alignItems: chatState === 'initial' ? 'center' : 'flex-end',
+          justifyContent: chatState === 'workmode' ? 'flex-start' : 'center',
+          paddingLeft: chatState === 'workmode' ? '2rem' : '2rem',
+          paddingBottom: chatState === 'initial' ? '0' : '2rem',
+        }}
+        transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
+      >
+        <motion.div 
+          className="w-full relative z-10 flex flex-col h-full"
+          initial={{
+            maxWidth: '700px',
+          }}
+          animate={{
+            maxWidth: chatState === 'initial' ? '700px' : chatState === 'active' ? '500px' : '100%',
+          }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+        >
+          {/* Chat History */}
+          <div ref={chatHistoryRef} className="w-full mb-4 flex-1 overflow-y-auto scrollbar-hide pr-2">
+            {history.map((message, index) => (
+              <motion.div 
+                key={message.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.4,
+                  delay: index * 0.1,
+                  ease: "easeOut"
+                }}
+                className={`flex w-full mb-4 ${
+                  message.sender === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className={`relative p-4 rounded-2xl max-w-full backdrop-blur-xl border ${
+                    message.sender === 'user' 
+                      ? 'bg-gradient-to-br from-green-500/20 to-emerald-600/20 border-green-500/30 text-green-300' 
+                      : 'bg-gradient-to-br from-slate-700/90 to-slate-800/90 border-emerald-500/20 text-slate-200'
+                  }`}
+                >
+                  {/* Glass shine effect */}
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"></div>
+                  {message.text}
+                </motion.div>
+              </motion.div>
+            ))}
+
+            {/* Uploaded Images Grid as a Message */}
+            {chatState === 'workmode' && uploadedImages.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="flex w-full mb-4 justify-end"
+              >
+                <div className={gridMaximized ? 'w-full' : 'max-w-lg'}>
+                  <UploadedGrid
+                    isOpen={true}
+                    isMaximized={gridMaximized}
+                    onToggleMaximize={() => setGridMaximized(!gridMaximized)}
+                    uploadedImages={uploadedImages}
+                    onRemoveImage={onRemoveImage}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Chat Input */}
+          <div className="w-full shrink-0">
+            <motion.div 
+              className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-2xl shadow-2xl border border-emerald-500/30"
+              initial={{
+                borderRadius: '24px',
+                padding: '20px',
+              }}
+              animate={{
+                borderRadius: chatState === 'initial' ? '24px' : '9999px',
+                padding: chatState === 'initial' ? '20px' : '12px',
+              }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            >
+              {/* Outer glow */}
+              <motion.div 
+                className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-full blur-xl -z-10"
+                animate={{
+                  opacity: [0.3, 0.6, 0.3]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              
+              {/* Top shine */}
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent"></div>
+
+              <div className="flex items-center justify-between w-full gap-4">
+                {/* Left Icon */}
+                <motion.button
+                  onClick={() => setShowUploader(true)}
+                  whileHover={{ rotate: 90, scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                  className="cursor-pointer"
+                >
+                  <Plus className="w-6 h-6 text-emerald-400 shrink-0" />
+                </motion.button>
+
+                {/* Input Field */}
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask anything"
+                  disabled={isSending || isChatLoading}
+                  className="flex-1 bg-transparent text-slate-200 text-lg placeholder-slate-500 py-1 focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  autoFocus
+                />
+
+                {/* Mic Button */}
+                <motion.button
+                  onClick={handleSubmission}
+                  disabled={isSending || isChatLoading || !inputValue.trim()}
+                  whileHover={!isSending && !isChatLoading && inputValue.trim() ? { scale: 1.1 } : {}}
+                  whileTap={!isSending && !isChatLoading && inputValue.trim() ? { scale: 0.9 } : {}}
+                  className={`shrink-0 flex items-center justify-center p-2 rounded-full transition shadow-lg ${
+                    isSending || isChatLoading || !inputValue.trim()
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-white hover:bg-gray-100 cursor-pointer'
+                  }`}
+                >
+                  {isSending || isChatLoading ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-5 h-5 border-2 border-black border-t-transparent rounded-full"
+                    />
+                  ) : (
+                    <Mic className="w-5 h-5 text-black" />
+                  )}
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Uploader Modal */}
+      <Uploader 
+        isOpen={showUploader} 
+        onClose={() => setShowUploader(false)} 
+      />
+    </div>
+  );
+};
+
+export default AnimatedChatUI;

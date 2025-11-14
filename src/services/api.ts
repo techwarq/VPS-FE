@@ -1,5 +1,7 @@
 // API service for photoshoot backend integration with streaming support
 
+import { ModelCharacteristics } from '@/components/chatui/components/AvatarFormPopup'; // Import ModelCharacteristics
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -69,11 +71,19 @@ export interface StreamingPhotoshootResult {
 }
 
 export interface StreamingAvatarResult {
-  angle: string;
-  prompt?: string;
-  images?: ModelImage[];
+  modelIndex: number; // New field
+  characteristics: ModelCharacteristics; // Corrected type
+  angles: Array<{
+    name: string;
+    prompt?: string;
+    images?: ModelImage[];
+    text?: string;
+    error?: string;
+    storedInGridFS?: boolean; // New field
+  }>; // Redefined to contain angles
   text?: string;
   error?: string;
+  storedInGridFS?: boolean; // Existing field from previous example
 }
 
 export interface StreamingTryOnResult {
@@ -195,14 +205,25 @@ export interface PhotoshootRequest {
 }
 
 export interface AvatarGenerationRequest {
-  subject?: string;
-  hair_color?: string;
-  eye_color?: string;
-  hairstyle?: string;
-  ethnicity?: string;
-  age?: number;
-  gender?: string;
-  clothing?: string;
+  models?: {
+    subject?: string;
+    hair_color?: string;
+    eye_color?: string;
+    hairstyle?: string;
+    ethnicity?: string;
+    age?: number;
+    gender?: string;
+    clothing?: string;
+  }[];
+  count?: number; // For Option 2
+  subject?: string; // For Option 3
+  gender?: string; // For Option 3
+  hair_color?: string; // For Option 3
+  eye_color?: string; // For Option 3
+  hairstyle?: string; // For Option 3
+  ethnicity?: string; // For Option 3
+  age?: number; // For Option 3
+  clothing?: string; // For Option 3
   framing?: string;
   body_scope?: string;
   bodyScope?: string;
@@ -239,7 +260,7 @@ export interface PoseTransferRequest {
 }
 
 // Base API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 class ApiService {
   private baseURL: string;
@@ -558,8 +579,8 @@ class ApiService {
           results,
           metadata: {
             totalAngles: 5, // Always 5 angles
-            completedAngles: results.filter(r => r.images && r.images.length > 0).length,
-            failedAngles: results.filter(r => r.error).length,
+            completedAngles: results.flatMap(r => r.angles).filter(angle => angle.images && angle.images.length > 0).length,
+            failedAngles: results.flatMap(r => r.angles).filter(angle => angle.error).length,
             timestamp: Date.now(),
           },
         },
