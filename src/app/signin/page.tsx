@@ -43,7 +43,12 @@ export default function SignInPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) {
+      setError('No credential received from Google');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -238,7 +243,7 @@ export default function SignInPage() {
             transition={{ delay: 0.4 }}
             className="mt-6 text-center text-sm text-emerald-300/60"
           >
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-emerald-300 hover:text-emerald-400 font-medium transition-colors">
               Sign up
             </Link>

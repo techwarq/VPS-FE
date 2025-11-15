@@ -16,6 +16,7 @@ interface UploadedGridProps {
   onToggleMaximize: () => void;
   uploadedImages?: UploadedImage[];
   onRemoveImage?: (id: number) => void;
+  onModelSelect?: (imageId: number) => void;
 }
 
 export default function UploadedGrid({ 
@@ -23,7 +24,8 @@ export default function UploadedGrid({
   isMaximized, 
   onToggleMaximize,
   uploadedImages = [],
-  onRemoveImage
+  onRemoveImage,
+  onModelSelect
 }: UploadedGridProps) {
   const [selectedImageId, setSelectedImageId] = useState<number | null>(null);
 
@@ -94,9 +96,14 @@ export default function UploadedGrid({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   transition={{ delay: index * 0.05 }}
-                  onClick={() => setSelectedImageId(
-                    selectedImageId === image.id ? null : image.id
-                  )}
+                  onClick={() => {
+                    const newSelectedId = selectedImageId === image.id ? null : image.id;
+                    setSelectedImageId(newSelectedId);
+                    // Call onModelSelect when an image is clicked
+                    if (newSelectedId !== null && onModelSelect) {
+                      onModelSelect(newSelectedId);
+                    }
+                  }}
                   className="relative group"
                 >
                   {/* Image Container */}

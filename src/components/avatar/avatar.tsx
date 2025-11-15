@@ -327,18 +327,20 @@ export const AvatarParameters: React.FC<AvatarParametersProps> = ({
       {isLoading && generationProgress.length > 0 && (
         <div className="p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
           <p className="text-sm text-blue-400 mb-2">
-            Generating avatars... ({generationProgress.length}/5 angles completed)
+            Generating avatars... ({generationProgress.reduce((total, result) => total + (result.angles?.length || 0), 0)} angles completed)
           </p>
           <div className="space-y-1">
-            {generationProgress.map((result, index) => (
-              <div key={index} className="text-xs text-gray-400">
-                {result.error ? (
-                  <span className="text-red-400">❌ {result.angle}: {result.error}</span>
-                ) : (
-                  <span className="text-green-400">✅ {result.angle}: Generated</span>
-                )}
-              </div>
-            ))}
+            {generationProgress.map((result, resultIndex) => 
+              result.angles?.map((angle, angleIndex) => (
+                <div key={`${resultIndex}-${angleIndex}`} className="text-xs text-gray-400">
+                  {angle.error ? (
+                    <span className="text-red-400">❌ {angle.name}: {angle.error}</span>
+                  ) : (
+                    <span className="text-green-400">✅ {angle.name}: Generated</span>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

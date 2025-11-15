@@ -75,14 +75,19 @@ export const VPSMain: React.FC = () => {
 
   // Helper functions to convert streaming results to store format
   const convertAvatarResults = (streamingResults: StreamingAvatarResult[]): AvatarImage[] => {
-    return streamingResults
-      .filter(result => result.images && result.images.length > 0)
-      .map((result, index) => ({
-        id: `avatar-${result.angle || index}-${Date.now()}`,
-        url: createImageUrl(result.images![0]),
-        angle: result.angle,
-        isLoading: false // Ensure isLoading is set
-      }));
+    // Flatten avatars and their angles into individual items
+    return streamingResults.flatMap((result) => 
+      result.angles?.map((angle, angleIndex) => {
+        const firstImage = angle.images && angle.images.length > 0 ? angle.images[0] : null;
+        if (!firstImage) return null;
+        return {
+          id: `avatar-${result.modelIndex}-${angleIndex}-${Date.now()}`,
+          url: createImageUrl(firstImage),
+          angle: angle.name || `Angle ${angleIndex + 1}`,
+          isLoading: false
+        };
+      }).filter(Boolean) as AvatarImage[] || []
+    );
   };
 
   const convertTryOnResults = (streamingResults: StreamingTryOnResult[]): TryOnResult[] => {
@@ -283,30 +288,34 @@ export const VPSMain: React.FC = () => {
     
     //FIX: Explicitly type prevAvatars to resolve TypeScript errors
     setGeneratedAvatars((prevAvatars: AvatarImage[]) => { 
-      const updated = prevAvatars.map(avatar => {
-        if (avatar.angle === result.angle) {
-          // Replace the placeholder with the actual result
-          return {
-            ...avatar,
-            id: `avatar-${result.angle}-${Date.now()}`,
-            url: result.images && result.images.length > 0 ? createImageUrl(result.images[0]) : avatar.url,
+      const updated = [...prevAvatars];
+      
+      // Process each angle in the result
+      result.angles?.forEach((angle, angleIndex) => {
+        const angleName = angle.name || `Angle ${angleIndex + 1}`;
+        const firstImage = angle.images && angle.images.length > 0 ? angle.images[0] : null;
+        
+        // Find existing avatar with this angle name
+        const existingIndex = updated.findIndex(avatar => avatar.angle === angleName);
+        
+        if (existingIndex >= 0) {
+          // Update existing avatar
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            id: `avatar-${result.modelIndex}-${angleIndex}-${Date.now()}`,
+            url: firstImage ? createImageUrl(firstImage) : updated[existingIndex].url,
             isLoading: false
           };
+        } else if (firstImage) {
+          // Add new avatar if it doesn't exist
+          updated.push({
+            id: `avatar-${result.modelIndex}-${angleIndex}-${Date.now()}`,
+            url: createImageUrl(firstImage),
+            angle: angleName,
+            isLoading: false
+          });
         }
-        return avatar;
       });
-      
-      // If no existing placeholder found, add new avatar
-      const hasExisting = prevAvatars.some(avatar => avatar.angle === result.angle);
-      if (!hasExisting && result.images && result.images.length > 0) {
-        const newAvatar: AvatarImage = {
-          id: `avatar-${result.angle}-${Date.now()}`,
-          url: createImageUrl(result.images[0]),
-          angle: result.angle,
-          isLoading: false
-        };
-        updated.push(newAvatar);
-      }
       
       return updated;
     });

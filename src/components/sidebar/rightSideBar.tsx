@@ -161,12 +161,19 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
   };
 
   const onAvatarGenerated = (avatars: StreamingAvatarResult[]) => {
-    setGeneratedAvatars(avatars.map((avatar, index) => ({
-      id: `avatar-${avatar.angle || index}-${Date.now()}`,
-      url: avatar.images && avatar.images.length > 0 ? createImageUrl(avatar.images[0]) : '',
-      angle: avatar.angle,
-      isLoading: false
-    })));
+    // Flatten avatars and their angles into individual items
+    const flattenedAvatars = avatars.flatMap((avatar, avatarIndex) => 
+      avatar.angles?.map((angle, angleIndex) => {
+        const firstImage = angle.images && angle.images.length > 0 ? angle.images[0] : null;
+        return {
+          id: `avatar-${avatar.modelIndex}-${angleIndex}-${Date.now()}`,
+          url: firstImage ? createImageUrl(firstImage) : '',
+          angle: angle.name || `Angle ${angleIndex + 1}`,
+          isLoading: false
+        };
+      }) || []
+    );
+    setGeneratedAvatars(flattenedAvatars);
   };
 
   const onTryOnGenerated = (results: StreamingTryOnResult[]) => {
@@ -192,26 +199,34 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
 
   const onAvatarProgress = (result: StreamingAvatarResult) => {
     setGeneratedAvatars(prevAvatars => {
-      const updated = prevAvatars.map(avatar => {
-        if (avatar.angle === result.angle) {
-          return {
-            ...avatar,
-            url: result.images && result.images.length > 0 ? createImageUrl(result.images[0]) : avatar.url,
+      const updated = [...prevAvatars];
+      
+      // Process each angle in the result
+      result.angles?.forEach((angle, angleIndex) => {
+        const angleName = angle.name || `Angle ${angleIndex + 1}`;
+        const firstImage = angle.images && angle.images.length > 0 ? angle.images[0] : null;
+        
+        // Find existing avatar with this angle name
+        const existingIndex = updated.findIndex(avatar => avatar.angle === angleName);
+        
+        if (existingIndex >= 0) {
+          // Update existing avatar
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            url: firstImage ? createImageUrl(firstImage) : updated[existingIndex].url,
             isLoading: false
           };
+        } else if (firstImage) {
+          // Add new avatar if it doesn't exist
+          updated.push({
+            id: `avatar-${result.modelIndex}-${angleIndex}-${Date.now()}`,
+            url: createImageUrl(firstImage),
+            angle: angleName,
+            isLoading: false
+          });
         }
-        return avatar;
       });
-
-      const hasExisting = prevAvatars.some(avatar => avatar.angle === result.angle);
-      if (!hasExisting && result.images && result.images.length > 0) {
-        updated.push({
-          id: `avatar-${result.angle}-${Date.now()}`,
-          url: createImageUrl(result.images[0]),
-          angle: result.angle,
-          isLoading: false
-        });
-      }
+      
       return updated;
     });
   };

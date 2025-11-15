@@ -234,7 +234,8 @@ export interface AvatarGenerationRequest {
 }
 
 export interface TryOnItem {
-  avatar_image: ModelImage | string; // Support both ModelImage and URL string
+  avatar_image?: ModelImage | string; // Support both ModelImage and URL string (legacy)
+  avatar_images?: (ModelImage | string)[]; // Support multiple avatar angles for one model
   garment_images: (ModelImage | string)[]; // Support both ModelImage and URL string
   reference_model_images?: (ModelImage | string)[];
 }
@@ -260,7 +261,14 @@ export interface PoseTransferRequest {
 }
 
 // Base API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+// Use NEXT_PUBLIC_API_URL if set, otherwise default to localhost:4000
+// Note: Endpoints in this service expect /api prefix, so we add it if not present
+const getApiBaseURL = () => {
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  // If baseURL doesn't end with /api, add it for this service
+  return baseURL.endsWith('/api') ? baseURL : `${baseURL}/api`;
+};
+const API_BASE_URL = getApiBaseURL();
 
 class ApiService {
   private baseURL: string;
@@ -678,7 +686,7 @@ class ApiService {
   // Utility endpoint
   async healthCheck(): Promise<ApiResponse<{ status: string; version: string }>> {
     try {
-      const response = await fetch(`${this.baseURL}/api/health`);
+      const response = await fetch(`${this.baseURL}/health`);
       const data = await response.json();
       return {
         success: true,

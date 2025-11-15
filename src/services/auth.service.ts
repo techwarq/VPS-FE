@@ -1,5 +1,5 @@
 // auth.service.ts
-const API_BASE_URL = 'http://localhost:4000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 interface AuthResponse {
   success: boolean;
@@ -26,7 +26,7 @@ export class AuthService {
 
   // Register with email and password
   static async register(email: string, password: string, name?: string): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export class AuthService {
 
   // Login with email and password
   static async login(email: string, password: string): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ export class AuthService {
 
   // Login with Google
   static async loginWithGoogle(idToken: string): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/google`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/google`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ export class AuthService {
     if (!token) return null;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -117,11 +117,11 @@ export class AuthService {
   }
 
   // Update profile
-  static async updateProfile(name?: string, preferences?: any): Promise<any> {
+  static async updateProfile(name?: string, preferences?: Record<string, unknown>): Promise<{ success: boolean; data?: User; error?: string }> {
     const token = this.getToken();
     if (!token) throw new Error('Not authenticated');
 
-    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -134,11 +134,11 @@ export class AuthService {
   }
 
   // Change password
-  static async changePassword(currentPassword: string, newPassword: string): Promise<any> {
+  static async changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message?: string; error?: string }> {
     const token = this.getToken();
     if (!token) throw new Error('Not authenticated');
 
-    const response = await fetch(`${API_BASE_URL}/auth/password`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/password`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

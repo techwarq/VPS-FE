@@ -14,20 +14,30 @@ interface AnimatedChatUIProps {
   onWorkmode?: () => void;
   onStateChange?: (state: 'initial' | 'active' | 'workmode') => void;
   onShowAvatarPopup?: () => void;
+  onShowTryonPopup?: () => void;
   uploadedImages?: UploadedImage[];
   onRemoveImage?: (id: number) => void;
-  onSendMessage?: (message: string, queryId?: number, onProgress?: (data: Record<string, unknown>) => void) => Promise<any>;
+  onSendMessage?: (message: string, queryId?: number, onProgress?: (data: Record<string, unknown>) => void) => Promise<{ text?: string; message?: string; content?: string; next?: string | null } | null>;
   isChatLoading?: boolean;
+  onModelSelect?: (imageId: number) => void;
+  showTryonPrompt?: boolean;
+  onTryonPromptYes?: () => void;
+  onTryonPromptNo?: () => void;
 }
 
 const AnimatedChatUI = ({ 
   onWorkmode, 
   onStateChange, 
-  onShowAvatarPopup, 
+  onShowAvatarPopup,
+  onShowTryonPopup,
   uploadedImages = [], 
   onRemoveImage,
   onSendMessage,
-  isChatLoading = false
+  isChatLoading = false,
+  onModelSelect,
+  showTryonPrompt = false,
+  onTryonPromptYes,
+  onTryonPromptNo
 }: AnimatedChatUIProps) => {
   const [chatState, setChatState] = useState('initial'); // 'initial' | 'active' | 'workmode'
   const [inputValue, setInputValue] = useState('');
@@ -104,25 +114,85 @@ const AnimatedChatUI = ({
 
         // Handle API response
         let aiResponseText = '';
-        if (response && response.message) {
+        let nextAction: string | null = null;
+
+        // Check if response has content directly (new API format)
+        if (response && response.content) {
+          aiResponseText = response.content;
+          // next can be null, so check if it exists and is not null
+          if (response.next !== undefined && response.next !== null) {
+            nextAction = response.next;
+          }
+        } 
+        // Fallback: Check if response has text that needs parsing (legacy format)
+        else if (response && response.text) {
+          try {
+            // Strip markdown code blocks if present (```json ... ```)
+            let jsonString = response.text.trim();
+            
+            // Remove markdown code block markers
+            if (jsonString.startsWith('```json')) {
+              jsonString = jsonString.replace(/^```json\s*\n?/, '');
+            } else if (jsonString.startsWith('```')) {
+              jsonString = jsonString.replace(/^```\s*\n?/, '');
+            }
+            
+            if (jsonString.endsWith('```')) {
+              jsonString = jsonString.replace(/\n?```\s*$/, '');
+            }
+            
+            // Parse the cleaned JSON string
+            const parsedText = JSON.parse(jsonString.trim());
+            
+            // Extract content and next from parsed JSON
+            if (parsedText.content) {
+              aiResponseText = parsedText.content;
+            }
+            if (parsedText.next !== undefined && parsedText.next !== null) {
+              nextAction = parsedText.next;
+            }
+          } catch (parseError) {
+            // If parsing fails, use the text as is
+            console.warn('Failed to parse response.text as JSON:', parseError);
+            aiResponseText = response.text;
+          }
+        } 
+        // Fallback: Check for message field
+        else if (response && response.message) {
           aiResponseText = response.message;
-        } else if (response && response.text) {
-          aiResponseText = response.text;
-        } else if (response && typeof response === 'string') {
+        } 
+        // Fallback: Check if response is a string
+        else if (response && typeof response === 'string') {
           aiResponseText = response;
-        } else {
-          // Fallback response
+        } 
+        // Final fallback response
+        else {
           aiResponseText = containsAvatar 
             ? `Perfect! Let's get started with your avatar.`
             : `Got it! You asked: "${userMessageText}". I'm ready to proceed with your request.`;
         }
 
-        const aiResponse = {
-          id: Date.now() + 1,
-          sender: 'ai',
-          text: aiResponseText,
-        };
-        setHistory(prev => [...prev, aiResponse]);
+        // Always show the message to the user, even if next is null
+        if (aiResponseText) {
+          const aiResponse = {
+            id: Date.now() + 1,
+            sender: 'ai',
+            text: aiResponseText,
+          };
+          setHistory(prev => [...prev, aiResponse]);
+        }
+
+        // After 3 seconds, check for next action and trigger modal if needed
+        // Only trigger if nextAction is not null
+        if (nextAction) {
+          setTimeout(() => {
+            if (nextAction === 'selectAvatarModal' && onShowAvatarPopup) {
+              onShowAvatarPopup();
+            } else if (nextAction === 'selectedTryonmode' && onShowTryonPopup) {
+              onShowTryonPopup();
+            }
+          }, 3000);
+        }
       } catch (error) {
         console.error('Chat API error:', error);
         const errorResponse = {
@@ -204,12 +274,12 @@ const AnimatedChatUI = ({
         transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
       >
         <motion.div 
-          className="w-full relative z-10 flex flex-col h-full"
+          className="w-full relative z-10 flex flex-col h-full mx-auto"
           initial={{
             maxWidth: '700px',
           }}
           animate={{
-            maxWidth: chatState === 'initial' ? '700px' : chatState === 'active' ? '500px' : '100%',
+            maxWidth: chatState === 'initial' ? '700px' : chatState === 'active' ? '500px' : '800px',
           }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
         >
@@ -259,11 +329,46 @@ const AnimatedChatUI = ({
                     onToggleMaximize={() => setGridMaximized(!gridMaximized)}
                     uploadedImages={uploadedImages}
                     onRemoveImage={onRemoveImage}
+                    onModelSelect={onModelSelect}
                   />
                 </div>
               </motion.div>
             )}
           </div>
+
+          {/* Try-On Prompt - Shows when avatar generation completes */}
+          {showTryonPrompt && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="w-full mb-4 flex justify-center"
+            >
+              <div className="relative p-4 rounded-2xl max-w-lg backdrop-blur-xl border bg-gradient-to-br from-emerald-500/20 to-green-600/20 border-emerald-500/30 text-white">
+                <p className="text-center mb-4 font-semibold">
+                  Let&apos;s start with try-on for the avatars?
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={onTryonPromptYes}
+                    className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition-all shadow-[0_4px_20px_rgba(16,185,129,0.3)]"
+                  >
+                    Yes, let&apos;s start
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={onTryonPromptNo}
+                    className="px-6 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-medium transition-all"
+                  >
+                    No, wait
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Chat Input */}
           <div className="w-full shrink-0">

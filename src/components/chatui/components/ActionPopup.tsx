@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Upload, Sparkles, ArrowRight } from 'lucide-react';
 
 interface ActionPopupProps {
   isOpen: boolean;
@@ -64,30 +65,38 @@ export default function ActionPopup({
               <div className="flex flex-col items-center gap-6">
                 {/* Top Row - Primary and Secondary Actions */}
                 <div className="flex flex-wrap justify-center gap-6 w-full">
-                  {/* Primary Button */}
+                  {/* Primary Button - Upload */}
                   <motion.button
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={onPrimaryAction}
-                    className="px-12 py-4 bg-white/10 backdrop-blur-sm border border-emerald-500/40 rounded-2xl text-white text-xl font-medium hover:border-emerald-400/60 transition-all duration-300 shadow-[0_4px_20px_rgba(16,185,129,0.2)]"
+                    className="group relative px-8 py-5 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border-2 border-emerald-500/50 rounded-2xl text-white text-lg font-semibold hover:border-emerald-400/80 transition-all duration-300 shadow-[0_4px_20px_rgba(16,185,129,0.2)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.4)] overflow-hidden min-w-[200px]"
                   >
-                    {primaryLabel}
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative flex items-center justify-center gap-3">
+                      <Upload className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                      <span>{primaryLabel}</span>
+                    </div>
                   </motion.button>
 
-                  {/* Secondary Button */}
+                  {/* Secondary Button - Generate (Primary Action) */}
                   <motion.button
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={onSecondaryAction}
-                    className="px-12 py-4 bg-white/10 backdrop-blur-sm border border-emerald-500/40 rounded-2xl text-white text-xl font-medium hover:border-emerald-400/60 transition-all duration-300 shadow-[0_4px_20px_rgba(16,185,129,0.2)]"
+                    className="group relative px-8 py-5 bg-gradient-to-br from-emerald-600 to-emerald-500 border-2 border-emerald-400/60 rounded-2xl text-white text-lg font-semibold hover:from-emerald-500 hover:to-emerald-400 transition-all duration-300 shadow-[0_4px_25px_rgba(16,185,129,0.4)] hover:shadow-[0_8px_35px_rgba(16,185,129,0.6)] overflow-hidden min-w-[200px]"
                   >
-                    {secondaryLabel}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative flex items-center justify-center gap-3">
+                      <Sparkles className="w-5 h-5 text-white group-hover:rotate-12 transition-transform" />
+                      <span>{secondaryLabel}</span>
+                    </div>
                   </motion.button>
                 </div>
 
@@ -97,12 +106,15 @@ export default function ActionPopup({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.4 }}
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={onTertiaryAction}
-                    className="px-12 py-4 bg-white/10 backdrop-blur-sm border border-emerald-500/40 rounded-2xl text-white text-xl font-medium hover:border-emerald-400/60 transition-all duration-300 shadow-[0_4px_20px_rgba(16,185,129,0.2)]"
+                    className="group relative px-8 py-4 bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl text-white/80 text-base font-medium hover:bg-white/10 hover:text-white hover:border-white/30 transition-all duration-300 shadow-[0_2px_10px_rgba(0,0,0,0.2)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.3)] overflow-hidden min-w-[180px]"
                   >
-                    {tertiaryLabel}
+                    <div className="relative flex items-center justify-center gap-2">
+                      <span>{tertiaryLabel}</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </motion.button>
                 )}
               </div>

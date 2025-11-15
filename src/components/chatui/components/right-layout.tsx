@@ -12,33 +12,65 @@ interface ModelPreviewProps {
   onToggleMinimize: () => void;
   models?: GeneratedModel[]; // Changed images to models
   isLoading?: boolean;
+  selectedModelIndex?: number;
+  onModelSelect?: (modelIndex: number) => void;
+  tryonResults?: Map<number, Array<{ id: number; url: string; angle: string }>>; // avatarIndex -> try-on images
+  isTryonMode?: boolean;
 }
 
-export default function ModelPreview({ isMinimized, onToggleMinimize, models: propModels, isLoading = false }: ModelPreviewProps) {
-  const [selectedModelIndex, setSelectedModelIndex] = useState(0); // New state for selected model
-  const [selectedAngleIndex, setSelectedAngleIndex] = useState(0); // Existing state renamed
+export default function ModelPreview({ 
+  isMinimized, 
+  onToggleMinimize, 
+  models: propModels, 
+  isLoading = false,
+  selectedModelIndex: propSelectedModelIndex,
+  onModelSelect,
+  tryonResults = new Map(),
+  isTryonMode = false
+}: ModelPreviewProps) {
+  const [internalSelectedModelIndex, setInternalSelectedModelIndex] = useState(0);
+  const [selectedAngleIndex, setSelectedAngleIndex] = useState(0);
+  
+  // Use prop if provided, otherwise use internal state
+  const selectedModelIndex = propSelectedModelIndex !== undefined ? propSelectedModelIndex : internalSelectedModelIndex;
+  const setSelectedModelIndex = onModelSelect || setInternalSelectedModelIndex;
   
   // Use propModels if available, otherwise fallback to default
   const models = propModels && propModels.length > 0 ? propModels : [];
 
   // When models change, reset selected indices
   useEffect(() => {
-    setSelectedModelIndex(0);
+    if (propSelectedModelIndex === undefined) {
+      setInternalSelectedModelIndex(0);
+    }
     setSelectedAngleIndex(0);
     if (propModels && propModels.length > 0) {
       console.log('ModelPreview received models:', propModels);
     }
-  }, [propModels]);
+  }, [propModels, propSelectedModelIndex]);
 
-  // Get the angles for the currently selected model
-  const currentModelAngles = models[selectedModelIndex]?.angles || [];
+  // Get the images for the currently selected model
+  // If in try-on mode and results exist, show try-on results, otherwise show avatar angles
+  const currentModelTryonResults = tryonResults.get(selectedModelIndex) || [];
+  const hasTryonResultsForSelectedModel = currentModelTryonResults.length > 0;
+  const currentModelImages = isTryonMode && tryonResults.size > 0
+    ? currentModelTryonResults
+    : (models[selectedModelIndex]?.angles || []);
+  
+  // Determine if we should show loading - only if we're generating and have no results yet
+  // For avatar generation: show loading only if no models at all
+  // For try-on: show loading only if no results for selected model
+  const hasAnyResults = isTryonMode 
+    ? hasTryonResultsForSelectedModel 
+    : (models.length > 0 && models[selectedModelIndex]?.angles.length > 0);
+  const shouldShowLoading = isLoading && !hasAnyResults;
   
   // Get a representative image for the grid (first angle's image of each model)
-  const modelGridImages = models.map((model) => {
+  const modelGridImages = models.map((model, index) => {
     // Try to find the first angle that has an image
     const firstImageAngle = model.angles.find(angle => angle.url);
     return {
-      id: model.modelIndex, // Use modelIndex as ID for the grid item
+      id: `model-${index}-${model.modelIndex}`, // Use combination of index and modelIndex for unique ID
       url: firstImageAngle?.url || '',
       // You can add more properties here if needed for the grid display (e.g., model characteristics)
     };
@@ -68,7 +100,7 @@ export default function ModelPreview({ isMinimized, onToggleMinimize, models: pr
           }}
           transition={{ duration: 0.3 }}
         >
-          Photoshoot Review
+          {isTryonMode ? 'Try-On Results' : 'Photoshoot Review'}
         </motion.h2>
         <motion.button
           onClick={onToggleMinimize}
@@ -93,8 +125,8 @@ export default function ModelPreview({ isMinimized, onToggleMinimize, models: pr
             transition={{ duration: 0.2 }}
             className="flex-1 flex flex-col px-6 pb-6"
           >
-            {isLoading ? (
-              /* Loading State */
+            {shouldShowLoading ? (
+              /* Loading State - Only show if no results yet */
               <div className="flex-1 flex items-center justify-center">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -106,26 +138,43 @@ export default function ModelPreview({ isMinimized, onToggleMinimize, models: pr
                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                     className="w-16 h-16 border-4 border-emerald-400 border-t-transparent rounded-full mx-auto mb-4"
                   />
-                  <p className="text-emerald-400 text-lg font-semibold">Generating your avatars...</p>
+                  <p className="text-emerald-400 text-lg font-semibold">
+                    {isTryonMode ? 'Generating try-on results...' : 'Generating your avatars...'}
+                  </p>
                   <p className="text-white/60 text-sm mt-2">This may take a few moments</p>
                 </motion.div>
               </div>
             ) : (
               <>
                 {/* Carousel - takes remaining space but leaves room for grid */}
+                {/* Show results as they stream in, even if still loading */}
                 <div className='flex-1 relative mb-[22%] min-h-0'>
-                  <ImageCarousel 
-                    images={currentModelAngles}
-                    currentIndex={selectedAngleIndex}
-                    setCurrentIndex={setSelectedAngleIndex}
-                  />
+                  {currentModelImages.length > 0 ? (
+                    <ImageCarousel 
+                      images={currentModelImages}
+                      currentIndex={selectedAngleIndex}
+                      setCurrentIndex={setSelectedAngleIndex}
+                    />
+                  ) : (
+                    <div className='relative rounded-xl overflow-hidden border border-emerald-700/40 bg-gradient-to-br from-emerald-950/30 to-black/50 h-full flex items-center justify-center'>
+                      <div className='text-center text-white/60'>
+                        <p className='text-lg font-semibold'>No images available</p>
+                        <p className='text-sm mt-2'>
+                          {isLoading ? 'Generating...' : 'Images will appear here once generated'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Grid - absolutely positioned at bottom */}
                 <ImageGrid 
                   images={modelGridImages}
                   selectedIndex={selectedModelIndex}
-                  onImageSelect={setSelectedModelIndex}
+                  onImageSelect={(index) => {
+                    setSelectedModelIndex(index);
+                    setSelectedAngleIndex(0); // Reset angle when switching models
+                  }}
                 />
               </>
             )}

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageCarouselProps {
-  images: Array<{ id: number; url: string }>;
+  images: Array<{ id: number | string; url: string; angle?: string }>;
   currentIndex: number;
   setCurrentIndex: (index: number) => void;
 }
@@ -51,7 +51,7 @@ export default function ImageCarousel({ images, currentIndex, setCurrentIndex }:
       {/* Main Image Display */}
       <AnimatePresence mode='wait'>
         <motion.div
-          key={safeIndex}
+          key={currentImage.id || `image-${safeIndex}-${currentImage.url}`}
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}

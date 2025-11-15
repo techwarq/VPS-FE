@@ -7,6 +7,7 @@ import AnimatedChatUI from '@/components/chatui/components/chatbox';
 import ModelPreview from '@/components/chatui/components/right-layout';
 import ActionPopup from '@/components/chatui/components/ActionPopup';
 import AvatarFormPopup, { AvatarFormData, ModelCharacteristics } from '@/components/chatui/components/AvatarFormPopup'; // Import ModelCharacteristics
+import TryonPopup, { TryonFormData } from '@/components/chatui/components/TryonPopup';
 import { useVPSAPI } from '@/components/hooks/use-vps-api';
 
 export interface GeneratedModel { // New interface
@@ -21,19 +22,66 @@ export default function ChatUI() {
   const [rightPanelMinimized, setRightPanelMinimized] = useState(false);
   const [showAvatarPopup, setShowAvatarPopup] = useState(false);
   const [showAvatarForm, setShowAvatarForm] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<Array<{id: number; url: string; name: string}>>([]);
+  const [showTryonPopup, setShowTryonPopup] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<Array<{id: number; url: string; name: string; modelIndex?: number}>>([]);
   const [generatedModels, setGeneratedModels] = useState<GeneratedModel[]>([]); // Changed from generatedAvatars
   const [isGeneratingAvatars, setIsGeneratingAvatars] = useState(false);
-  const { chatPhotoshoot, generateAvatarAPI, isLoading: isChatLoading } = useVPSAPI();
+  const [isGeneratingTryon, setIsGeneratingTryon] = useState(false);
+  const [selectedModelIndex, setSelectedModelIndex] = useState(0);
+  const [showTryonPrompt, setShowTryonPrompt] = useState(false);
+  const [tryonResults, setTryonResults] = useState<Map<number, Array<{ id: number; url: string; angle: string }>>>(new Map()); // avatarIndex -> try-on images
+  const { chatPhotoshoot, generateAvatarAPI, tryOnAPI, isLoading: isChatLoading } = useVPSAPI();
 
   // Debug: Log when generatedAvatars changes
   useEffect(() => {
     console.log('🔄 generatedAvatars state changed:', generatedModels);
     console.log('🔄 generatedAvatars length:', generatedModels.length);
     if (generatedModels.length > 0) {
-      console.log('🔄 First avatar URL:', generatedModels[0].angles[0].url);
+      console.log('🔄 First avatar URL:', generatedModels[0].angles[0]?.url);
     }
   }, [generatedModels]);
+
+  // Update uploadedImages when models are generated
+  useEffect(() => {
+    if (generatedModels.length > 0) {
+      // Convert generated models to uploadedImages format
+      // Show the first angle image of each model
+      const modelImages = generatedModels.map((model, modelIndex) => {
+        // Get the first available angle image
+        const firstAngle = model.angles.find(angle => angle.url) || model.angles[0];
+        return {
+          id: model.modelIndex || modelIndex + 1,
+          url: firstAngle?.url || '',
+          name: `Model ${modelIndex + 1} - ${firstAngle?.angle || 'Front'}`,
+          modelIndex: modelIndex // Store the model index for selection
+        };
+      }).filter(img => img.url); // Filter out any without URLs
+      
+      setUploadedImages(modelImages);
+      // Reset selected model to first one when new models are generated
+      setSelectedModelIndex(0);
+    }
+  }, [generatedModels]);
+
+  // Handle model selection from uploaded grid
+  const handleModelSelect = (imageId: number) => {
+    // Find the uploaded image and use its modelIndex
+    const selectedImage = uploadedImages.find(img => img.id === imageId);
+    if (selectedImage && selectedImage.modelIndex !== undefined) {
+      setSelectedModelIndex(selectedImage.modelIndex);
+    } else {
+      // Fallback: find by image ID matching model ID
+      const modelIndex = generatedModels.findIndex(
+        (model, index) => {
+          const modelId = model.modelIndex !== undefined ? model.modelIndex : index + 1;
+          return modelId === imageId;
+        }
+      );
+      if (modelIndex !== -1) {
+        setSelectedModelIndex(modelIndex);
+      }
+    }
+  };
 
   const toggleCollapse = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -43,16 +91,6 @@ export default function ChatUI() {
     // Automatically collapse sidebar when chatbox enters workmode
     if (!sidebarCollapsed) {
       setSidebarCollapsed(true);
-    }
-    
-    // Add sample images for testing
-    if (uploadedImages.length === 0) {
-      setUploadedImages([
-        { id: 1, url: 'https://i.pinimg.com/1200x/64/f1/68/64f16895a20a3ee2e4bbcbe3a3343057.jpg', name: 'avatar-1.jpg' },
-        { id: 2, url: 'https://i.pinimg.com/1200x/0f/5a/0f/0f5a0f471e36cf19524d435b31f84624.jpg', name: 'avatar-2.jpg' },
-        { id: 3, url: 'https://i.pinimg.com/736x/06/1e/0f/061e0f4d77fa2e91fe7022f5a44a3ff8.jpg', name: 'avatar-3.jpg' },
-        { id: 4, url: 'https://i.pinimg.com/1200x/68/fc/a4/68fca438ce1dd7a2310deeb35d92a51e.jpg', name: 'avatar-4.jpg' },
-      ]);
     }
   };
 
@@ -73,6 +111,10 @@ export default function ChatUI() {
 
   const isWorkmode = chatState === 'workmode';
 
+  // Determine if right panel should be shown
+  // Only show when generation is actively happening or we have results in workmode
+  const shouldShowRightPanel = (isGeneratingAvatars || isGeneratingTryon || (generatedModels.length > 0 && isWorkmode) || (tryonResults.size > 0 && isWorkmode)) && (isWorkmode || rightPanelMinimized);
+
   // Example handlers for the popup actions
   const handleUploadOwn = () => {
     console.log('Upload own clicked');
@@ -90,15 +132,19 @@ export default function ChatUI() {
     console.log('Avatar form submitted:', formData);
     setShowAvatarForm(false);
     
-    // Immediately transition to workmode to show the right panel with loading state
-    setChatState('workmode');
-    if (!sidebarCollapsed) {
-      setSidebarCollapsed(true);
-    }
-    setIsGeneratingAvatars(true);
+    // Keep chat in active mode until generation actually starts
+    // Don't transition to workmode or show right panel yet
     
     try {
-      let accumulatedModels: GeneratedModel[] = []; // New accumulator for models
+      // Start generation - this will trigger the transition
+      setIsGeneratingAvatars(true);
+      
+      // NOW transition to workmode and show right panel
+      setChatState('workmode');
+      if (!sidebarCollapsed) {
+        setSidebarCollapsed(true);
+      }
+      const accumulatedModels: GeneratedModel[] = []; // New accumulator for models
       
       // Call avatar generation API with onProgress callback
       await generateAvatarAPI(formData, (streamingResult) => {
@@ -119,10 +165,10 @@ export default function ChatUI() {
 
         // Process angles for the current model
         if (angles && Array.isArray(angles)) {
-          angles.forEach((angleResult: any) => {
+          angles.forEach((angleResult) => {
             if (angleResult.images && Array.isArray(angleResult.images)) {
-              angleResult.images.forEach((img: any, imgIndex: number) => {
-                const url = img.signedUrl || img.url || img.signed_url || '';
+              angleResult.images.forEach((img) => {
+                const url = img.signedUrl || (img as { url?: string }).url || '';
                 if (url) {
                   currentModel?.angles.push({
                     id: Date.now() + Math.random(), // Unique ID
@@ -148,6 +194,8 @@ export default function ChatUI() {
       // After streaming is complete, ensure final state is set
       if (accumulatedModels.length > 0) {
         console.log('Final generated models count:', accumulatedModels.length);
+        // Show try-on prompt when generation completes
+        setShowTryonPrompt(true);
       } else {
         console.error('❌ No models or images found in avatar streaming response!');
       }
@@ -161,6 +209,7 @@ export default function ChatUI() {
 
   const handleContinueInChat = () => {
     setShowAvatarForm(false);
+    setShowTryonPopup(false);
     // Focus on chat input
     setTimeout(() => {
       const chatInput = document.querySelector('input[placeholder="Ask anything"]') as HTMLInputElement;
@@ -168,6 +217,78 @@ export default function ChatUI() {
         chatInput.focus();
       }
     }, 300);
+  };
+
+  const handleTryonFormSubmit = async (formData: TryonFormData) => {
+    console.log('Try-on form submitted:', formData);
+    setShowTryonPopup(false);
+    setShowTryonPrompt(false);
+    
+    // Keep chat in active mode until generation actually starts
+    // Don't transition to workmode or show right panel yet
+    
+    try {
+      // Start generation - this will trigger the transition
+      setIsGeneratingTryon(true);
+      
+      // NOW transition to workmode and show right panel
+      setChatState('workmode');
+      if (!sidebarCollapsed) {
+        setSidebarCollapsed(true);
+      }
+      await tryOnAPI(
+        {
+          selectedAvatarIndices: formData.selectedAvatarIndices,
+          selectedAvatars: formData.selectedAvatars,
+          selectedGarments: formData.selectedGarments,
+          garmentAssignments: formData.garmentAssignments,
+        },
+        (streamingResult) => {
+          console.log('Streaming Try-On Result:', streamingResult);
+          // Handle streaming results - map them to the correct avatar and show immediately
+          // item_index corresponds to the index in the items array (which matches selectedAvatars order)
+          if (streamingResult.images && streamingResult.images.length > 0) {
+            const itemIndex = streamingResult.item_index ?? 0;
+            // Map item_index to the original avatar index from generatedModels
+            const avatarIndex = formData.selectedAvatarIndices[itemIndex] ?? itemIndex;
+            
+            // Get existing results for this avatar
+            setTryonResults(prevResults => {
+              const newResults = new Map(prevResults);
+              const existingResults = newResults.get(avatarIndex) || [];
+              
+              if (streamingResult.images && Array.isArray(streamingResult.images)) {
+                streamingResult.images.forEach((img) => {
+                  const url = img.signedUrl || (img as { url?: string }).url || '';
+                  if (url) {
+                    // Check if this image already exists (avoid duplicates)
+                    const imageExists = existingResults.some(r => r.url === url);
+                    if (!imageExists) {
+                      existingResults.push({
+                        id: Date.now() + Math.random(),
+                        url: url,
+                        angle: `Try-On ${existingResults.length + 1}`,
+                      });
+                    }
+                  }
+                });
+              }
+              
+              newResults.set(avatarIndex, existingResults);
+              
+              // If we have results, we can stop showing loading for that avatar
+              // But keep loading state if we're still expecting more results
+              return newResults;
+            });
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Try-on generation failed:', error);
+      // TODO: Show error message to user
+    } finally {
+      setIsGeneratingTryon(false);
+    }
   };
 
   const handleProceed = () => {
@@ -189,22 +310,32 @@ export default function ChatUI() {
       />
       
       <main className="flex-1 flex flex-col overflow-hidden">
-        <div className={`flex-1 flex overflow-hidden ${isWorkmode && !rightPanelMinimized ? 'flex-row' : ''}`}>
+        <div className={`flex-1 flex overflow-hidden ${shouldShowRightPanel && !rightPanelMinimized ? 'flex-row' : ''}`}>
           {/* Chat Section */}
-          <div className={`${isWorkmode && !rightPanelMinimized ? 'w-1/2 ' : 'w-full'} overflow-hidden`}>
+          <div className={`${shouldShowRightPanel && !rightPanelMinimized ? 'w-1/2 ' : 'w-full'} overflow-hidden`}>
             <AnimatedChatUI 
               onWorkmode={handleWorkmode} 
               onStateChange={handleStateChange}
               onShowAvatarPopup={() => setShowAvatarPopup(true)}
+              onShowTryonPopup={() => setShowTryonPopup(true)}
               uploadedImages={uploadedImages}
               onRemoveImage={handleRemoveImage}
               onSendMessage={chatPhotoshoot}
               isChatLoading={isChatLoading}
+              onModelSelect={handleModelSelect}
+              showTryonPrompt={showTryonPrompt}
+              onTryonPromptYes={() => {
+                setShowTryonPrompt(false);
+                setShowTryonPopup(true);
+              }}
+              onTryonPromptNo={() => setShowTryonPrompt(false)}
             />
           </div>
           
-          {/* Model Preview Section - Show in workmode, when minimized, or when generating avatars */}
-          {(isWorkmode || rightPanelMinimized || isGeneratingAvatars) && (
+          {/* Model Preview Section - Only show when generation is actually happening */}
+          {/* Don't show until generation starts (isGeneratingAvatars or isGeneratingTryon is true) */}
+          {/* Only show if actively generating OR if we have results AND are in workmode */}
+          {shouldShowRightPanel && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -215,7 +346,11 @@ export default function ChatUI() {
                 isMinimized={rightPanelMinimized}
                 onToggleMinimize={toggleRightPanelMinimize}
                 models={generatedModels.length > 0 ? generatedModels : undefined} // Changed to models prop
-                isLoading={isGeneratingAvatars}
+                isLoading={isGeneratingAvatars || isGeneratingTryon}
+                selectedModelIndex={selectedModelIndex}
+                onModelSelect={setSelectedModelIndex}
+                tryonResults={tryonResults}
+                isTryonMode={isGeneratingTryon || tryonResults.size > 0}
               />
               {/* Debug info */}
               {process.env.NODE_ENV === 'development' && (
@@ -252,6 +387,15 @@ export default function ChatUI() {
         onClose={() => setShowAvatarForm(false)}
         onSubmit={handleAvatarFormSubmit}
         onContinueInChat={handleContinueInChat}
+      />
+
+      {/* Try-On Popup */}
+      <TryonPopup
+        isOpen={showTryonPopup}
+        onClose={() => setShowTryonPopup(false)}
+        onSubmit={handleTryonFormSubmit}
+        onContinueInChat={handleContinueInChat}
+        generatedModels={generatedModels}
       />
     </div>
   );

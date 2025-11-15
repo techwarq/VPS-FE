@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { AuthService } from '@/services/auth.service';
-import { apiService, AvatarGenerationRequest, StreamingAvatarResult } from '@/services/api'; // Import apiService and types
+import { apiService, AvatarGenerationRequest, StreamingAvatarResult, StreamingTryOnResult } from '@/services/api'; // Import apiService and types
 import { AvatarFormData, ModelCharacteristics } from '@/components/chatui/components/AvatarFormPopup'; // Import AvatarFormData and ModelCharacteristics
 
 // API base URL configuration
-const API_BASE_URL = 'http://localhost:4000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 // Mock API functions - replace with actual API calls
 export const useVPSAPI = () => {
@@ -94,7 +94,7 @@ export const useVPSAPI = () => {
         const formData = new FormData();
         formData.append('file', file);
         
-        const response = await fetch(`${API_BASE_URL}/upload`, {
+        const response = await fetch(`${API_BASE_URL}/api/files/upload`, {
           method: 'POST',
           body: formData
         });
@@ -148,7 +148,7 @@ export const useVPSAPI = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch(`${API_BASE_URL}/upload`, {
+      const response = await fetch(`${API_BASE_URL}/api/files/upload`, {
         method: 'POST',
         body: formData
       });
@@ -193,7 +193,7 @@ export const useVPSAPI = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch(`${API_BASE_URL}/upload`, {
+      const response = await fetch(`${API_BASE_URL}/api/files/upload`, {
         method: 'POST',
         body: formData
       });
@@ -320,6 +320,67 @@ export const useVPSAPI = () => {
     }
   };
 
+  const tryOnAPI = async (
+    formData: { 
+      selectedAvatarIndices: number[];
+      selectedAvatars: Array<{ modelIndex: number; characteristics: unknown; angles: Array<{ id: number; url: string; angle: string }> }>; 
+      selectedGarments: Array<{ id: string; url: string; label: string }>;
+      garmentAssignments: Array<{ avatarIndex: number; garmentIds: string[] }>;
+    },
+    onProgress?: (result: StreamingTryOnResult) => void
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Prepare try-on request - one item per avatar/model
+      // Each item contains all angles for that avatar + only the garments assigned to it
+      // Structure: items[avatar1 {avatar_images: [...], garment_images: [...]}, avatar2 {...}, ...]
+      const tryOnItems = formData.selectedAvatars.map((avatar, index: number) => {
+        // Get the original avatar index from generatedModels array
+        const originalAvatarIndex = formData.selectedAvatarIndices[index];
+        
+        // Find the garment assignment for this avatar using the original index
+        const assignment = formData.garmentAssignments.find(
+          a => a.avatarIndex === originalAvatarIndex
+        );
+        
+        // Get the garment URLs for assigned garments
+        const assignedGarmentUrls = assignment && assignment.garmentIds.length > 0
+          ? formData.selectedGarments
+              .filter(g => assignment.garmentIds.includes(g.id))
+              .map(g => g.url)
+          : [];
+
+        return {
+          avatar_images: avatar.angles.map((angle) => angle.url),
+          garment_images: assignedGarmentUrls,
+        };
+      });
+
+      const request = {
+        items: tryOnItems,
+        aspect_ratio: '3:4', // Default, can be made configurable
+        style: undefined,
+        negative_prompt: undefined,
+      };
+
+      const response = await apiService.tryOn(request, onProgress);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to generate try-on');
+      }
+      
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate try-on';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     generateAvatar,
     tryOn,
@@ -329,6 +390,7 @@ export const useVPSAPI = () => {
     uploadFile,
     chatPhotoshoot,
     generateAvatarAPI,
+    tryOnAPI,
     isLoading,
     error
   };

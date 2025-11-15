@@ -58,7 +58,12 @@ export default function SignUpPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) {
+      setError('No credential received from Google');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
