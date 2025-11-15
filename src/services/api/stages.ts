@@ -1,7 +1,13 @@
 // File upload API using the new upload endpoint
 
 // API base URL configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+// Normalize API_BASE_URL to remove trailing slashes
+const getApiBaseURL = () => {
+  const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  return url.replace(/\/+$/, ''); // Remove trailing slashes
+};
+
+const API_BASE_URL = getApiBaseURL();
 
 export const uploadFile = async (file: File) => {
   try {

@@ -264,7 +264,9 @@ export interface PoseTransferRequest {
 // Use NEXT_PUBLIC_API_URL if set, otherwise default to localhost:4000
 // Note: Endpoints in this service expect /api prefix, so we add it if not present
 const getApiBaseURL = () => {
-  const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  let baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  // Remove trailing slashes first
+  baseURL = baseURL.replace(/\/+$/, '');
   // If baseURL doesn't end with /api, add it for this service
   return baseURL.endsWith('/api') ? baseURL : `${baseURL}/api`;
 };
