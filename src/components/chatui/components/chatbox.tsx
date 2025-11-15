@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Mic } from 'lucide-react';
+import { Plus, Mic, Sparkles, ArrowRight, Upload, Image as ImageIcon } from 'lucide-react';
 import Uploader from './uploader';
 import UploadedGrid from './uploaded-grid';
 
@@ -8,6 +8,12 @@ interface UploadedImage {
   id: number;
   url: string;
   name: string;
+}
+
+interface ChatMessage {
+  id: number;
+  sender: 'user' | 'ai';
+  text: string;
 }
 
 interface AnimatedChatUIProps {
@@ -45,13 +51,7 @@ const AnimatedChatUI = ({
   const [gridMaximized, setGridMaximized] = useState(false);
   const chatHistoryRef = useRef<HTMLDivElement>(null);
 
-  const [history, setHistory] = useState([
-    {
-      id: 1,
-      sender: 'ai',
-      text: "hey 👋 looks like you're testing — what do you want to do?",
-    }
-  ]);
+  const [history, setHistory] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
 
   // Auto-scroll to bottom when new messages arrive
@@ -65,7 +65,7 @@ const AnimatedChatUI = ({
     if (!inputValue.trim() || isSending || isChatLoading) return;
 
     const userMessageText = inputValue.trim();
-    const newUserMessage = {
+    const newUserMessage: ChatMessage = {
       id: Date.now(),
       sender: 'user',
       text: userMessageText,
@@ -174,7 +174,7 @@ const AnimatedChatUI = ({
 
         // Always show the message to the user, even if next is null
         if (aiResponseText) {
-          const aiResponse = {
+          const aiResponse: ChatMessage = {
             id: Date.now() + 1,
             sender: 'ai',
             text: aiResponseText,
@@ -195,7 +195,7 @@ const AnimatedChatUI = ({
         }
       } catch (error) {
         console.error('Chat API error:', error);
-        const errorResponse = {
+        const errorResponse: ChatMessage = {
           id: Date.now() + 1,
           sender: 'ai',
           text: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
@@ -207,7 +207,7 @@ const AnimatedChatUI = ({
     } else {
       // Fallback to mock response if API is not available
       setTimeout(() => {
-        const aiResponse = {
+        const aiResponse: ChatMessage = {
           id: Date.now() + 1,
           sender: 'ai',
           text: containsAvatar 
@@ -255,6 +255,16 @@ const AnimatedChatUI = ({
           delay: 1
         }}
       />
+      
+      {/* Horizon Line Effect - Bolt V2 Style */}
+      {chatState === 'initial' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 1 }}
+          className="absolute bottom-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"
+        />
+      )}
 
       {/* Main container */}
       <motion.div 
@@ -279,11 +289,42 @@ const AnimatedChatUI = ({
             maxWidth: '700px',
           }}
           animate={{
-            maxWidth: chatState === 'initial' ? '700px' : chatState === 'active' ? '500px' : '800px',
+            maxWidth: chatState === 'initial' ? '900px' : chatState === 'active' ? '500px' : '800px',
           }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
         >
-          {/* Chat History */}
+          {/* Initial Welcome Screen - Bolt V2 Style */}
+          {chatState === 'initial' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="flex flex-col items-center justify-center flex-1 w-full"
+            >
+              {/* Main Heading */}
+              <motion.h1
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="text-5xl md:text-6xl font-bold text-white text-center mb-4"
+              >
+                What will you <span className="text-emerald-400">create</span> today?
+              </motion.h1>
+              
+              {/* Subtitle */}
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="text-gray-400 text-lg md:text-xl text-center mb-12"
+              >
+                Create stunning virtual photoshoots by chatting with AI
+              </motion.p>
+            </motion.div>
+          )}
+
+          {/* Chat History - Only show when not in initial state */}
+          {chatState !== 'initial' && (
           <div ref={chatHistoryRef} className="w-full mb-4 flex-1 overflow-y-auto scrollbar-hide pr-2">
             {history.map((message, index) => (
               <motion.div 
@@ -335,6 +376,7 @@ const AnimatedChatUI = ({
               </motion.div>
             )}
           </div>
+          )}
 
           {/* Try-On Prompt - Shows when avatar generation completes */}
           {showTryonPrompt && (
@@ -371,7 +413,132 @@ const AnimatedChatUI = ({
           )}
 
           {/* Chat Input */}
-          <div className="w-full shrink-0">
+          <div className={`w-full shrink-0 ${chatState === 'initial' ? 'mt-8' : ''}`}>
+            {chatState === 'initial' ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="w-full"
+              >
+                {/* Large Input Box - Bolt V2 Style */}
+                <motion.div 
+                  className="relative bg-gray-900/80 backdrop-blur-2xl shadow-2xl border border-emerald-500/30 rounded-2xl p-6"
+                  whileHover={{ borderColor: 'rgba(16, 185, 129, 0.5)' }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {/* Outer glow */}
+                  <motion.div 
+                    className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-2xl blur-xl -z-10"
+                    animate={{
+                      opacity: [0.3, 0.6, 0.3]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  
+                  {/* Top shine */}
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent rounded-t-2xl"></div>
+
+                  <div className="flex items-center justify-between w-full gap-4">
+                    {/* Left Icon */}
+                    <motion.button
+                      onClick={() => setShowUploader(true)}
+                      whileHover={{ rotate: 90, scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={{ duration: 0.3 }}
+                      className="w-10 h-10 rounded-full bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center cursor-pointer transition-all"
+                    >
+                      <Plus className="w-5 h-5 text-emerald-400" />
+                    </motion.button>
+
+                    {/* Input Field */}
+                    <input
+                      type="text"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Let's create a professional photoshoot..."
+                      disabled={isSending || isChatLoading}
+                      className="flex-1 bg-transparent text-white text-lg placeholder-gray-500 py-2 focus:outline-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      autoFocus
+                    />
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-3">
+                      {/* Plan/AI Suggestion */}
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-800/70 border border-gray-700/50 text-gray-300 text-sm transition-all"
+                      >
+                        <Sparkles className="w-4 h-4 text-emerald-400" />
+                        <span>Plan</span>
+                      </motion.button>
+
+                      {/* Submit Button */}
+                      <motion.button
+                        onClick={handleSubmission}
+                        disabled={isSending || isChatLoading || !inputValue.trim()}
+                        whileHover={!isSending && !isChatLoading && inputValue.trim() ? { scale: 1.05 } : {}}
+                        whileTap={!isSending && !isChatLoading && inputValue.trim() ? { scale: 0.95 } : {}}
+                        className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-all shadow-lg ${
+                          isSending || isChatLoading || !inputValue.trim()
+                            ? 'bg-gray-700 cursor-not-allowed text-gray-500'
+                            : 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer'
+                        }`}
+                      >
+                        {isSending || isChatLoading ? (
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                          />
+                        ) : (
+                          <>
+                            <span>Create now</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Import Options */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  className="mt-8 text-center"
+                >
+                  <p className="text-gray-500 text-sm mb-4">or start with</p>
+                  <div className="flex items-center justify-center gap-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setShowUploader(true)}
+                      className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-800/50 hover:bg-gray-800/70 border border-gray-700/50 text-gray-300 transition-all"
+                    >
+                      <Upload className="w-4 h-4 text-emerald-400" />
+                      <span>Upload Images</span>
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => onShowAvatarPopup && onShowAvatarPopup()}
+                      className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-800/50 hover:bg-gray-800/70 border border-gray-700/50 text-gray-300 transition-all"
+                    >
+                      <ImageIcon className="w-4 h-4 text-emerald-400" />
+                      <span>Create Avatar</span>
+                    </motion.button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            ) : (
             <motion.div 
               className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-2xl shadow-2xl border border-emerald-500/30"
               initial={{
@@ -379,8 +546,8 @@ const AnimatedChatUI = ({
                 padding: '20px',
               }}
               animate={{
-                borderRadius: chatState === 'initial' ? '24px' : '9999px',
-                padding: chatState === 'initial' ? '20px' : '12px',
+                  borderRadius: chatState === 'active' ? '9999px' : '24px',
+                  padding: chatState === 'active' ? '12px' : '20px',
               }}
               transition={{ duration: 0.5, ease: "easeInOut" }}
             >
@@ -448,6 +615,7 @@ const AnimatedChatUI = ({
                 </motion.button>
               </div>
             </motion.div>
+            )}
           </div>
         </motion.div>
       </motion.div>
