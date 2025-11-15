@@ -31,7 +31,8 @@ export const metadata: Metadata = {
   description: "A modern Next.js application with TypeScript and Tailwind CSS",
 };
 
-const GOOGLE_CLIENT_ID = '830525870730-26k9e3g8clnkhrh6oi9en1rg55i69d4h.apps.googleusercontent.com';
+// Use environment variable instead of hardcoded value
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '830525870730-26k9e3g8clnkhrh6oi9en1rg55i69d4h.apps.googleusercontent.com';
 
 export default function RootLayout({
   children,
