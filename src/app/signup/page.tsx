@@ -17,11 +17,18 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  // Redirect if already logged in
+  // Redirect if already logged in (verify token is actually valid)
   useEffect(() => {
-    if (AuthService.isAuthenticated()) {
-      router.push('/profile');
-    }
+    const checkAuth = async () => {
+      if (AuthService.isAuthenticated()) {
+        // Verify token is actually valid by checking user
+        const user = await AuthService.getCurrentUser();
+        if (user) {
+          router.push('/generate-2');
+        }
+      }
+    };
+    checkAuth();
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {

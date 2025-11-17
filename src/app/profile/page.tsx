@@ -67,6 +67,8 @@ export default function ProfilePage() {
     setLoading(true);
     const userData = await AuthService.getCurrentUser();
     if (!userData) {
+      // Clear invalid token before redirecting
+      AuthService.logout();
       router.push('/signin');
     } else {
       setUser(userData);
@@ -140,7 +142,7 @@ export default function ProfilePage() {
               transition={{ delay: 0.1 }}
               className="rounded-xl border border-emerald-600/45 backdrop-blur-2xl bg-gradient-to-br from-white/15 via-emerald-500/5 to-white/10 p-6"
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex  items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <Camera className="w-5 h-5 text-emerald-400" />
                   <h2 className="text-xl font-bold text-white">Last Photoshoot</h2>
