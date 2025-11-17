@@ -19,6 +19,22 @@ export default function Home() {
         backgroundSize: '40px 40px'
       }}></div>
       
+      {/* Header with Login/Signup */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+        <div className="flex justify-end items-center gap-4 mb-8">
+          <Link href="/signin">
+            <Button variant="outline" size="md" className="border-green-500/40 text-green-400 hover:bg-green-500/10 transition-all duration-300">
+              Login
+            </Button>
+          </Link>
+          <Link href="/signup">
+            <Button variant="primary" size="md" className="bg-green-600/90 hover:bg-green-500/90 text-white border-0 shadow-lg transition-all duration-300">
+              Sign Up
+            </Button>
+          </Link>
+        </div>
+      </div>
+
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         {/* Hero Section */}
         <div className="text-center mb-24">

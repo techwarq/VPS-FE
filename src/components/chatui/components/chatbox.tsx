@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Mic, Sparkles, ArrowRight, Upload, Image as ImageIcon } from 'lucide-react';
+import { Plus, Mic, ArrowRight } from 'lucide-react';
 import Uploader from './uploader';
 import UploadedGrid from './uploaded-grid';
 
@@ -419,11 +419,11 @@ const AnimatedChatUI = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="w-full"
+                className="w-full flex justify-center"
               >
                 {/* Large Input Box - Bolt V2 Style */}
                 <motion.div 
-                  className="relative bg-gray-900/80 backdrop-blur-2xl shadow-2xl border border-emerald-500/30 rounded-2xl p-6"
+                  className="relative bg-gray-900/80 backdrop-blur-2xl shadow-2xl border border-emerald-500/30 rounded-2xl p-6 w-full max-w-3xl"
                   whileHover={{ borderColor: 'rgba(16, 185, 129, 0.5)' }}
                   transition={{ duration: 0.3 }}
                 >
@@ -467,73 +467,30 @@ const AnimatedChatUI = ({
                       autoFocus
                     />
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-3">
-                      {/* Plan/AI Suggestion */}
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-800/70 border border-gray-700/50 text-gray-300 text-sm transition-all"
-                      >
-                        <Sparkles className="w-4 h-4 text-emerald-400" />
-                        <span>Plan</span>
-                      </motion.button>
-
-                      {/* Submit Button */}
-                      <motion.button
-                        onClick={handleSubmission}
-                        disabled={isSending || isChatLoading || !inputValue.trim()}
-                        whileHover={!isSending && !isChatLoading && inputValue.trim() ? { scale: 1.05 } : {}}
-                        whileTap={!isSending && !isChatLoading && inputValue.trim() ? { scale: 0.95 } : {}}
-                        className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-all shadow-lg ${
-                          isSending || isChatLoading || !inputValue.trim()
-                            ? 'bg-gray-700 cursor-not-allowed text-gray-500'
-                            : 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer'
-                        }`}
-                      >
-                        {isSending || isChatLoading ? (
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                          />
-                        ) : (
-                          <>
-                            <span>Create now</span>
-                            <ArrowRight className="w-4 h-4" />
-                          </>
-                        )}
-                      </motion.button>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Import Options */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.5 }}
-                  className="mt-8 text-center"
-                >
-                  <p className="text-gray-500 text-sm mb-4">or start with</p>
-                  <div className="flex items-center justify-center gap-4">
+                    {/* Submit Button */}
                     <motion.button
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setShowUploader(true)}
-                      className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-800/50 hover:bg-gray-800/70 border border-gray-700/50 text-gray-300 transition-all"
+                      onClick={handleSubmission}
+                      disabled={isSending || isChatLoading || !inputValue.trim()}
+                      whileHover={!isSending && !isChatLoading && inputValue.trim() ? { scale: 1.05 } : {}}
+                      whileTap={!isSending && !isChatLoading && inputValue.trim() ? { scale: 0.95 } : {}}
+                      className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-all shadow-lg ${
+                        isSending || isChatLoading || !inputValue.trim()
+                          ? 'bg-gray-700 cursor-not-allowed text-gray-500'
+                          : 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer'
+                      }`}
                     >
-                      <Upload className="w-4 h-4 text-emerald-400" />
-                      <span>Upload Images</span>
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => onShowAvatarPopup && onShowAvatarPopup()}
-                      className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-800/50 hover:bg-gray-800/70 border border-gray-700/50 text-gray-300 transition-all"
-                    >
-                      <ImageIcon className="w-4 h-4 text-emerald-400" />
-                      <span>Create Avatar</span>
+                      {isSending || isChatLoading ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                        />
+                      ) : (
+                        <>
+                          <span>Create now</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
                     </motion.button>
                   </div>
                 </motion.div>

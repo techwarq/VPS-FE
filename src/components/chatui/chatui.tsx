@@ -41,27 +41,7 @@ export default function ChatUI() {
     }
   }, [generatedModels]);
 
-  // Update uploadedImages when models are generated
-  useEffect(() => {
-    if (generatedModels.length > 0) {
-      // Convert generated models to uploadedImages format
-      // Show the first angle image of each model
-      const modelImages = generatedModels.map((model, modelIndex) => {
-        // Get the first available angle image
-        const firstAngle = model.angles.find(angle => angle.url) || model.angles[0];
-        return {
-          id: model.modelIndex || modelIndex + 1,
-          url: firstAngle?.url || '',
-          name: `Model ${modelIndex + 1} - ${firstAngle?.angle || 'Front'}`,
-          modelIndex: modelIndex // Store the model index for selection
-        };
-      }).filter(img => img.url); // Filter out any without URLs
-      
-      setUploadedImages(modelImages);
-      // Reset selected model to first one when new models are generated
-      setSelectedModelIndex(0);
-    }
-  }, [generatedModels]);
+  // Note: uploadedImages should only contain manually uploaded images, not generated models
 
   // Handle model selection from uploaded grid
   const handleModelSelect = (imageId: number) => {

@@ -29,7 +29,8 @@ export default function UploadedGrid({
 }: UploadedGridProps) {
   const [selectedImageId, setSelectedImageId] = useState<number | null>(null);
 
-  if (!isOpen) return null;
+  // Only show if there are actually uploaded images
+  if (!isOpen || uploadedImages.length === 0) return null;
 
   return (
     <motion.div

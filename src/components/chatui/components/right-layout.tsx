@@ -78,7 +78,7 @@ export default function ModelPreview({
 
   return (
     <motion.div
-      className={`rounded-2xl border border-emerald-700 flex flex-col bg-black relative overflow-hidden ${
+      className={`rounded-2xl border border-foreground/20 flex flex-col bg-black relative overflow-hidden transition ${
         isMinimized 
           ? 'fixed top-4 right-4 w-80 h-20 z-50' 
           : 'h-full'
@@ -136,7 +136,7 @@ export default function ModelPreview({
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                    className="w-16 h-16 border-4 border-emerald-400 border-t-transparent rounded-full mx-auto mb-4"
+                    className="w-16 h-16 border-4 border-foreground/60 border-t-transparent rounded-full mx-auto mb-4"
                   />
                   <p className="text-emerald-400 text-lg font-semibold">
                     {isTryonMode ? 'Generating try-on results...' : 'Generating your avatars...'}
@@ -156,7 +156,7 @@ export default function ModelPreview({
                       setCurrentIndex={setSelectedAngleIndex}
                     />
                   ) : (
-                    <div className='relative rounded-xl overflow-hidden border border-emerald-700/40 bg-gradient-to-br from-emerald-950/30 to-black/50 h-full flex items-center justify-center'>
+                    <div className='relative rounded-xl overflow-hidden border border-foreground/20 bg-gradient-to-br from-emerald-950/30 to-black/50 h-full flex items-center justify-center transition'>
                       <div className='text-center text-white/60'>
                         <p className='text-lg font-semibold'>No images available</p>
                         <p className='text-sm mt-2'>
