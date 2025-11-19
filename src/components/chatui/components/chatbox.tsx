@@ -450,12 +450,12 @@ const AnimatedChatUI = ({
                 {/* Large Input Box - Bolt V2 Style */}
                 <motion.div
                   className="relative bg-gray-900/60 backdrop-blur-2xl shadow-[0_0_40px_-10px_rgba(16,185,129,0.1)] border border-white/10 rounded-2xl p-4 w-full max-w-3xl group"
-                  whileHover={{ borderColor: 'rgba(16, 185, 129, 0.3)', boxShadow: '0 0 50px -10px rgba(16,185,129,0.2)' }}
+                  whileHover={{ borderColor: 'rgba(16, 185, 129, 0.15)' }}
                   transition={{ duration: 0.3 }}
                 >
-                  {/* Outer glow */}
+                  {/* Subtle outer glow on hover */}
                   <motion.div
-                    className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500/20 via-green-500/20 to-emerald-500/20 rounded-2xl blur-lg -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-emerald-500/10 rounded-2xl blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                   />
 
                   <div className="flex items-center justify-between w-full gap-4">

@@ -31,35 +31,21 @@ const Footer = () => {
                     </div>
 
                     {/* Right Section: Links */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-12 lg:gap-24">
+                    <div className="grid grid-cols-2 gap-12 lg:gap-24">
                         {/* Product Column */}
                         <div className="flex flex-col gap-4">
                             <h3 className="text-gray-500 text-sm font-semibold tracking-wider mb-2">PRODUCT</h3>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">PRICING</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">STARTUPS</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">ENTERPRISE</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">AGENT AUTH</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">MCP GATEWAY</Link>
-                        </div>
-
-                        {/* Resources Column */}
-                        <div className="flex flex-col gap-4">
-                            <h3 className="text-gray-500 text-sm font-semibold tracking-wider mb-2">RESOURCES</h3>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">DOCS</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">BLOG</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">COOKBOOKS</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">OAUTH2 GUIDES</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">CASE STUDIES</Link>
+                            <Link href="/generation" className="hover:text-emerald-400 transition-colors">Virtual Studio</Link>
+                            <Link href="/generation" className="hover:text-emerald-400 transition-colors">AI Branding</Link>
+                            <Link href="/generation" className="hover:text-emerald-400 transition-colors">Drop Planning</Link>
                         </div>
 
                         {/* Company Column */}
                         <div className="flex flex-col gap-4">
                             <h3 className="text-gray-500 text-sm font-semibold tracking-wider mb-2">COMPANY</h3>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">CAREERS</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">TRUST</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">SUPPORT</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">TERMS</Link>
-                            <Link href="#" className="hover:text-gray-300 transition-colors">PRIVACY POLICY</Link>
+                            <Link href="#" className="hover:text-emerald-400 transition-colors">Support</Link>
+                            <Link href="#" className="hover:text-emerald-400 transition-colors">Terms</Link>
+                            <Link href="#" className="hover:text-emerald-400 transition-colors">Privacy Policy</Link>
                         </div>
                     </div>
                 </div>

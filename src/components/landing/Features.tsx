@@ -43,32 +43,42 @@ export const Features = () => {
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {features.map((feature, index) => (
-                        <Card
+                        <div
                             key={index}
-                            variant="default"
-                            hover={true}
-                            className="bg-gray-900/40 border-white/5 hover:border-green-500/30 transition-all duration-300 group overflow-hidden"
+                            className="group relative bg-gradient-to-br from-gray-900/60 to-black/60 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden hover:border-emerald-500/20 transition-all duration-500"
                         >
-                            <div className="h-48 overflow-hidden relative">
-                                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent z-10" />
+                            {/* Subtle glow on hover */}
+                            <div className="absolute -inset-[1px] bg-gradient-to-br from-emerald-500/0 to-green-500/0 group-hover:from-emerald-500/10 group-hover:to-green-500/10 rounded-3xl blur-xl transition-all duration-500 -z-10" />
+
+                            {/* Image Section */}
+                            <div className="h-56 overflow-hidden relative">
+                                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent z-10" />
                                 <img
                                     src={feature.image}
                                     alt={feature.title}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 />
-                                <div className="absolute top-4 left-4 z-20 bg-black/60 backdrop-blur-md p-2 rounded-lg border border-white/10">
+                                {/* Icon Badge */}
+                                <div className="absolute top-5 left-5 z-20 bg-black/70 backdrop-blur-md p-3 rounded-2xl border border-white/10 group-hover:border-emerald-500/30 transition-colors duration-300">
                                     {feature.icon}
                                 </div>
                             </div>
-                            <div className="p-6">
-                                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+
+                            {/* Content Section */}
+                            <div className="p-6 space-y-3">
+                                <h3 className="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors duration-300">
+                                    {feature.title}
+                                </h3>
                                 <p className="text-gray-400 text-sm leading-relaxed">
                                     {feature.description}
                                 </p>
                             </div>
-                        </Card>
+
+                            {/* Bottom shine effect */}
+                            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                        </div>
                     ))}
                 </div>
             </div>
