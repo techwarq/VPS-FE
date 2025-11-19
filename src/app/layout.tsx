@@ -27,8 +27,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Frontend VPS - Next.js TypeScript Tailwind",
-  description: "A modern Next.js application with TypeScript and Tailwind CSS",
+  title: " Allore AI -The all-in-one AI platform for clothing brands.",
+  description: "Plan your strategy, generate stunning visuals, and launch directly to your store.",
   icons: {
     icon: [
       { url: '/draw-logo.png' },
