@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Building2, ArrowRight, Check, X } from 'lucide-react';
+import { User, Building2, ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 type UserType = 'hobby' | 'company' | null;
@@ -78,7 +78,7 @@ export const OnboardingQuestionnaire = () => {
                                     <User className="w-6 h-6 text-emerald-400" />
                                 </div>
                                 <h3 className="text-xl font-semibold text-white mb-2">Hobby User</h3>
-                                <p className="text-sm text-gray-400">I'm exploring for personal projects and fun.</p>
+                                <p className="text-sm text-gray-400">I&apos;m exploring for personal projects and fun.</p>
                             </button>
 
                             <button
@@ -92,7 +92,7 @@ export const OnboardingQuestionnaire = () => {
                                     <Building2 className="w-6 h-6 text-blue-400" />
                                 </div>
                                 <h3 className="text-xl font-semibold text-white mb-2">Company / Enterprise</h3>
-                                <p className="text-sm text-gray-400">I'm looking to scale my brand and business.</p>
+                                <p className="text-sm text-gray-400">I&apos;m looking to scale my brand and business.</p>
                             </button>
                         </div>
                     </div>
@@ -106,7 +106,7 @@ export const OnboardingQuestionnaire = () => {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">What's your name?</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">What&apos;s your name?</label>
                                     <input
                                         type="text"
                                         value={data.name}
@@ -250,7 +250,7 @@ export const OnboardingQuestionnaire = () => {
                                 }}
                                 className="w-full p-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition-all flex items-center justify-center gap-2"
                             >
-                                Let's have a meeting
+                                Let&apos;s have a meeting
                             </button>
 
                             <button
