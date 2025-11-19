@@ -29,6 +29,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Frontend VPS - Next.js TypeScript Tailwind",
   description: "A modern Next.js application with TypeScript and Tailwind CSS",
+  icons: {
+    icon: [
+      { url: '/draw-logo.png' },
+      { url: '/draw-logo.png', sizes: '32x32', type: 'image/png' },
+      { url: '/draw-logo.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/draw-logo.png' },
+    ],
+  },
 };
 
 // Use environment variable instead of hardcoded value
@@ -46,11 +56,11 @@ export default function RootLayout({
       >
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <div className="min-h-screen flex flex-col">
-          
+
             <main className="flex-1">
               {children}
             </main>
-         
+
           </div>
         </GoogleOAuthProvider>
       </body>
