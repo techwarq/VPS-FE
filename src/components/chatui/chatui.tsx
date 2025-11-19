@@ -23,7 +23,7 @@ export default function ChatUI() {
   const [showAvatarPopup, setShowAvatarPopup] = useState(false);
   const [showAvatarForm, setShowAvatarForm] = useState(false);
   const [showTryonPopup, setShowTryonPopup] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<Array<{id: number; url: string; name: string; modelIndex?: number}>>([]);
+  const [uploadedImages, setUploadedImages] = useState<Array<{ id: number; url: string; name: string; modelIndex?: number }>>([]);
   const [generatedModels, setGeneratedModels] = useState<GeneratedModel[]>([]); // Changed from generatedAvatars
   const [isGeneratingAvatars, setIsGeneratingAvatars] = useState(false);
   const [isGeneratingTryon, setIsGeneratingTryon] = useState(false);
@@ -111,21 +111,21 @@ export default function ChatUI() {
   const handleAvatarFormSubmit = async (formData: AvatarFormData) => {
     console.log('Avatar form submitted:', formData);
     setShowAvatarForm(false);
-    
+
     // Keep chat in active mode until generation actually starts
     // Don't transition to workmode or show right panel yet
-    
+
     try {
       // Start generation - this will trigger the transition
       setIsGeneratingAvatars(true);
-      
+
       // NOW transition to workmode and show right panel
       setChatState('workmode');
       if (!sidebarCollapsed) {
         setSidebarCollapsed(true);
       }
       const accumulatedModels: GeneratedModel[] = []; // New accumulator for models
-      
+
       // Call avatar generation API with onProgress callback
       await generateAvatarAPI(formData, (streamingResult) => {
         console.log('Streaming Avatar Result:', streamingResult);
@@ -203,14 +203,14 @@ export default function ChatUI() {
     console.log('Try-on form submitted:', formData);
     setShowTryonPopup(false);
     setShowTryonPrompt(false);
-    
+
     // Keep chat in active mode until generation actually starts
     // Don't transition to workmode or show right panel yet
-    
+
     try {
       // Start generation - this will trigger the transition
       setIsGeneratingTryon(true);
-      
+
       // NOW transition to workmode and show right panel
       setChatState('workmode');
       if (!sidebarCollapsed) {
@@ -231,12 +231,12 @@ export default function ChatUI() {
             const itemIndex = streamingResult.item_index ?? 0;
             // Map item_index to the original avatar index from generatedModels
             const avatarIndex = formData.selectedAvatarIndices[itemIndex] ?? itemIndex;
-            
+
             // Get existing results for this avatar
             setTryonResults(prevResults => {
               const newResults = new Map(prevResults);
               const existingResults = newResults.get(avatarIndex) || [];
-              
+
               if (streamingResult.images && Array.isArray(streamingResult.images)) {
                 streamingResult.images.forEach((img) => {
                   const url = img.signedUrl || (img as { url?: string }).url || '';
@@ -253,9 +253,9 @@ export default function ChatUI() {
                   }
                 });
               }
-              
+
               newResults.set(avatarIndex, existingResults);
-              
+
               // If we have results, we can stop showing loading for that avatar
               // But keep loading state if we're still expecting more results
               return newResults;
@@ -282,101 +282,113 @@ export default function ChatUI() {
   };
 
   return (
-    <div className="fixed inset-0 flex bg-gradient-to-br from-black via-gray-900 to-black overflow-hidden">
-      <Sidebar 
-        isOpen={true} 
-        onClose={toggleCollapse} 
-        isCollapsed={sidebarCollapsed}
-      />
-      
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <div className={`flex-1 flex overflow-hidden ${shouldShowRightPanel && !rightPanelMinimized ? 'flex-row' : ''}`}>
-          {/* Chat Section */}
-          <div className={`${shouldShowRightPanel && !rightPanelMinimized ? 'w-1/2 ' : 'w-full'} overflow-hidden`}>
-            <AnimatedChatUI 
-              onWorkmode={handleWorkmode} 
-              onStateChange={handleStateChange}
-              onShowAvatarPopup={() => setShowAvatarPopup(true)}
-              onShowTryonPopup={() => setShowTryonPopup(true)}
-              uploadedImages={uploadedImages}
-              onRemoveImage={handleRemoveImage}
-              onSendMessage={chatPhotoshoot}
-              isChatLoading={isChatLoading}
-              onModelSelect={handleModelSelect}
-              showTryonPrompt={showTryonPrompt}
-              onTryonPromptYes={() => {
-                setShowTryonPrompt(false);
-                setShowTryonPopup(true);
-              }}
-              onTryonPromptNo={() => setShowTryonPrompt(false)}
-            />
-          </div>
-          
-          {/* Model Preview Section - Only show when generation is actually happening */}
-          {/* Don't show until generation starts (isGeneratingAvatars or isGeneratingTryon is true) */}
-          {/* Only show if actively generating OR if we have results AND are in workmode */}
-          {shouldShowRightPanel && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className={rightPanelMinimized ? '' : 'w-[90%] overflow-hidden'}
-            >
-              <ModelPreview 
-                isMinimized={rightPanelMinimized}
-                onToggleMinimize={toggleRightPanelMinimize}
-                models={generatedModels.length > 0 ? generatedModels : undefined} // Changed to models prop
-                isLoading={isGeneratingAvatars || isGeneratingTryon}
-                selectedModelIndex={selectedModelIndex}
-                onModelSelect={setSelectedModelIndex}
-                tryonResults={tryonResults}
-                isTryonMode={isGeneratingTryon || tryonResults.size > 0}
+    <div className="fixed inset-0 flex overflow-hidden bg-gradient-to-br from-gray-950 via-black to-gray-950">
+      {/* Enhanced Background Layers */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-teal-900/15 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-emerald-950/30 via-transparent to-teal-950/20" />
+
+      {/* Subtle animated glow */}
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/3 left-1/3 w-80 h-80 bg-teal-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+
+      {/* Content wrapper */}
+      <div className="relative z-0 flex w-full">
+        <Sidebar
+          isOpen={true}
+          onClose={toggleCollapse}
+          isCollapsed={sidebarCollapsed}
+        />
+
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <div className={`flex-1 flex overflow-hidden ${shouldShowRightPanel && !rightPanelMinimized ? 'flex-row' : ''}`}>
+            {/* Chat Section */}
+            <div className={`${shouldShowRightPanel && !rightPanelMinimized ? 'w-1/2 ' : 'w-full'} overflow-hidden`}>
+              <AnimatedChatUI
+                onWorkmode={handleWorkmode}
+                onStateChange={handleStateChange}
+                onShowAvatarPopup={() => setShowAvatarPopup(true)}
+                onShowTryonPopup={() => setShowTryonPopup(true)}
+                uploadedImages={uploadedImages}
+                onRemoveImage={handleRemoveImage}
+                onSendMessage={chatPhotoshoot}
+                isChatLoading={isChatLoading}
+                onModelSelect={handleModelSelect}
+                showTryonPrompt={showTryonPrompt}
+                onTryonPromptYes={() => {
+                  setShowTryonPrompt(false);
+                  setShowTryonPopup(true);
+                }}
+                onTryonPromptNo={() => setShowTryonPrompt(false)}
               />
-              {/* Debug info */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 text-xs rounded z-50">
-                  <div>Workmode: {isWorkmode ? 'yes' : 'no'}</div>
-                  <div>Generating: {isGeneratingAvatars ? 'yes' : 'no'}</div>
-                  <div>Avatars: {generatedModels.length}</div>
-                  <div>Right Panel Minimized: {rightPanelMinimized ? 'yes' : 'no'}</div>
-                  <div>Chat State: {chatState}</div>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </div>
-      </main>
+            </div>
 
-      {/* Avatar Action Popup - Can be triggered from anywhere */}
-      <ActionPopup
-        isOpen={showAvatarPopup}
-        title="Okay lets start with avatar!"
-        onClose={() => setShowAvatarPopup(false)}
-        onPrimaryAction={handleUploadOwn}
-        onSecondaryAction={handleGenerate}
-        onTertiaryAction={handleProceed}
-        primaryLabel="upload ur owns"
-        secondaryLabel="generate"
-        tertiaryLabel="proceed"
-        showTertiary={true}
-      />
+            {/* Model Preview Section - Only show when generation is actually happening */}
+            {/* Don't show until generation starts (isGeneratingAvatars or isGeneratingTryon is true) */}
+            {/* Only show if actively generating OR if we have results AND are in workmode */}
+            {shouldShowRightPanel && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className={rightPanelMinimized ? '' : 'w-[90%] overflow-hidden'}
+              >
+                <ModelPreview
+                  isMinimized={rightPanelMinimized}
+                  onToggleMinimize={toggleRightPanelMinimize}
+                  models={generatedModels.length > 0 ? generatedModels : undefined} // Changed to models prop
+                  isLoading={isGeneratingAvatars || isGeneratingTryon}
+                  selectedModelIndex={selectedModelIndex}
+                  onModelSelect={setSelectedModelIndex}
+                  tryonResults={tryonResults}
+                  isTryonMode={isGeneratingTryon || tryonResults.size > 0}
+                />
+                {/* Debug info */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 text-xs rounded z-50">
+                    <div>Workmode: {isWorkmode ? 'yes' : 'no'}</div>
+                    <div>Generating: {isGeneratingAvatars ? 'yes' : 'no'}</div>
+                    <div>Avatars: {generatedModels.length}</div>
+                    <div>Right Panel Minimized: {rightPanelMinimized ? 'yes' : 'no'}</div>
+                    <div>Chat State: {chatState}</div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </div>
+        </main>
 
-      {/* Avatar Form Popup */}
-      <AvatarFormPopup
-        isOpen={showAvatarForm}
-        onClose={() => setShowAvatarForm(false)}
-        onSubmit={handleAvatarFormSubmit}
-        onContinueInChat={handleContinueInChat}
-      />
+        {/* Avatar Action Popup - Can be triggered from anywhere */}
+        <ActionPopup
+          isOpen={showAvatarPopup}
+          title="Okay lets start with avatar!"
+          onClose={() => setShowAvatarPopup(false)}
+          onPrimaryAction={handleUploadOwn}
+          onSecondaryAction={handleGenerate}
+          onTertiaryAction={handleProceed}
+          primaryLabel="upload ur owns"
+          secondaryLabel="generate"
+          tertiaryLabel="proceed"
+          showTertiary={true}
+        />
 
-      {/* Try-On Popup */}
-      <TryonPopup
-        isOpen={showTryonPopup}
-        onClose={() => setShowTryonPopup(false)}
-        onSubmit={handleTryonFormSubmit}
-        onContinueInChat={handleContinueInChat}
-        generatedModels={generatedModels}
-      />
+        {/* Avatar Form Popup */}
+        <AvatarFormPopup
+          isOpen={showAvatarForm}
+          onClose={() => setShowAvatarForm(false)}
+          onSubmit={handleAvatarFormSubmit}
+          onContinueInChat={handleContinueInChat}
+        />
+
+        {/* Try-On Popup */}
+        <TryonPopup
+          isOpen={showTryonPopup}
+          onClose={() => setShowTryonPopup(false)}
+          onSubmit={handleTryonFormSubmit}
+          onContinueInChat={handleContinueInChat}
+          generatedModels={generatedModels}
+        />
+      </div>
     </div>
   );
 }

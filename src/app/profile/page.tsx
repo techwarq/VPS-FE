@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  LogOut, 
-  Loader2, 
-  Edit, 
-  MessageSquare, 
-  Camera, 
+import {
+  LogOut,
+  Loader2,
+  Edit,
+  MessageSquare,
+  Camera,
   Image as ImageIcon,
   Images,
   CreditCard,
@@ -99,9 +99,9 @@ export default function ProfilePage() {
       case 'overview':
         return (
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-              <p className="text-emerald-300/60">Welcome back, {user.name || 'User'}!</p>
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-200 to-emerald-400 mb-2">Dashboard</h1>
+              <p className="text-emerald-400/80 text-lg">Welcome back, <span className="text-white font-semibold">{user.name || 'User'}</span>!</p>
             </div>
 
             {/* Last Chat */}
@@ -224,9 +224,9 @@ export default function ProfilePage() {
       case 'avatars':
         return (
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">My Avatars</h1>
-              <p className="text-emerald-300/60">Manage and view all your created avatars</p>
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-200 to-emerald-400 mb-2">My Avatars</h1>
+              <p className="text-emerald-400/80 text-lg">Manage and view all your created avatars</p>
             </div>
             <div className="rounded-xl border border-emerald-600/45 backdrop-blur-2xl bg-gradient-to-br from-white/15 via-emerald-500/5 to-white/10 p-8 text-center">
               <ImageIcon className="w-16 h-16 text-emerald-400/50 mx-auto mb-4" />
@@ -244,9 +244,9 @@ export default function ProfilePage() {
       case 'gallery':
         return (
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Gallery</h1>
-              <p className="text-emerald-300/60">All your photoshoot results in one place</p>
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-200 to-emerald-400 mb-2">Gallery</h1>
+              <p className="text-emerald-400/80 text-lg">All your photoshoot results in one place</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
@@ -266,9 +266,9 @@ export default function ProfilePage() {
       case 'settings':
         return (
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-              <p className="text-emerald-300/60">Manage your account preferences</p>
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-200 to-emerald-400 mb-2">Settings</h1>
+              <p className="text-emerald-400/80 text-lg">Manage your account preferences</p>
             </div>
             <div className="space-y-4">
               <div className="rounded-xl border border-emerald-600/45 backdrop-blur-2xl bg-gradient-to-br from-white/15 via-emerald-500/5 to-white/10 p-6">
@@ -279,17 +279,17 @@ export default function ProfilePage() {
                 <div className="space-y-3">
                   <label className="flex items-center justify-between cursor-pointer group">
                     <span className="text-gray-300 group-hover:text-white transition-colors">Email notifications</span>
-                    <input 
-                      type="checkbox" 
-                      className="w-5 h-5 rounded bg-black/30 border-emerald-500/40 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer" 
-                      defaultChecked 
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 rounded bg-black/30 border-emerald-500/40 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+                      defaultChecked
                     />
                   </label>
                   <label className="flex items-center justify-between cursor-pointer group">
                     <span className="text-gray-300 group-hover:text-white transition-colors">Push notifications</span>
-                    <input 
-                      type="checkbox" 
-                      className="w-5 h-5 rounded bg-black/30 border-emerald-500/40 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer" 
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 rounded bg-black/30 border-emerald-500/40 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
                     />
                   </label>
                 </div>
@@ -317,9 +317,9 @@ export default function ProfilePage() {
       case 'subscriptions':
         return (
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Subscriptions</h1>
-              <p className="text-emerald-300/60">Manage your subscription and billing</p>
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-200 to-emerald-400 mb-2">Subscriptions</h1>
+              <p className="text-emerald-400/80 text-lg">Manage your subscription and billing</p>
             </div>
             <div className="rounded-xl border border-emerald-600/45 backdrop-blur-2xl bg-gradient-to-br from-white/15 via-emerald-500/5 to-white/10 p-8">
               <div className="flex items-center gap-3 mb-6">
@@ -344,9 +344,9 @@ export default function ProfilePage() {
       case 'my-account':
         return (
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">My Account</h1>
-              <p className="text-emerald-300/60">Manage your account information</p>
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-200 to-emerald-400 mb-2">My Account</h1>
+              <p className="text-emerald-400/80 text-lg">Manage your account information</p>
             </div>
             <div className="space-y-4">
               <div className="rounded-xl border border-emerald-600/45 backdrop-blur-2xl bg-gradient-to-br from-white/15 via-emerald-500/5 to-white/10 p-6">
@@ -404,27 +404,27 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex">
+    <div className="h-screen bg-gradient-to-br from-black via-gray-900 to-black flex overflow-hidden">
       {/* Animated background gradients */}
-      <motion.div 
+      <motion.div
         className="fixed top-20 left-20 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"
-        animate={{ 
+        animate={{
           scale: [1, 1.2, 1],
           opacity: [0.3, 0.5, 0.3]
         }}
-        transition={{ 
+        transition={{
           duration: 4,
           repeat: Infinity,
           ease: "easeInOut"
         }}
       />
-      <motion.div 
+      <motion.div
         className="fixed bottom-20 right-20 w-96 h-96 bg-green-500/10 rounded-full blur-3xl pointer-events-none"
-        animate={{ 
+        animate={{
           scale: [1.2, 1, 1.2],
           opacity: [0.2, 0.4, 0.2]
         }}
-        transition={{ 
+        transition={{
           duration: 5,
           repeat: Infinity,
           ease: "easeInOut",
@@ -433,7 +433,7 @@ export default function ProfilePage() {
       />
 
       {/* Sidebar */}
-      <ProfileSidebar 
+      <ProfileSidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}
       />
